@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+	<persistence-unit name="persistencia">
+	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+	<class>modelo.entidades.Categoria</class>
+	<class>modelo.entidades.CategoriaEgreso</class>
+	<class>modelo.entidades.CategoriaIngreso</class>
+	<class>modelo.entidades.CategoriaTransferencia</class>
+	<class>modelo.entidades.Cuenta</class>
+	<class>modelo.entidades.Egreso</class>
+	<class>modelo.entidades.Ingreso</class>
+	<class>modelo.entidades.Transferencia</class>
+	<class>modelo.entidades.Usuario</class>
+	<class>modelo.entidades.Movimiento</class>
+		<properties>
+			<property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/intento2"/>
+			<property name="jakarta.persistence.jdbc.user" value="root"/>
+			<property name="jakarta.persistence.jdbc.password" value="12345"/>
+			<property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+			 <property name="eclipselink.ddl-generation" value="create-tables"/>
+			 
+			<!--<property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>-->
+			<!-- property name="eclipselink.ddl-generation" value="drop-and-create-tables" /-->
+			<!--<property name="eclipselink.ddl-generation" value="none" />-->
+		</properties>
+	</persistence-unit>
+</persistence>
