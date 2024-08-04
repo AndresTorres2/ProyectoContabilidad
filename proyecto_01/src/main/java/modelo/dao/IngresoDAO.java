@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
 import modelo.entidades.Categoria;
@@ -44,6 +45,18 @@ public class IngresoDAO extends MovimientoDAO {
         } catch (Exception e) {
             e.printStackTrace(); // Registrar o manejar otras excepciones
             return Collections.emptyList(); // Retornar una lista vacía en caso de error
+        }
+    }
+	
+	public void createIngreso(Ingreso ingreso) {
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            em.persist(ingreso); // Inserta el nuevo ingreso en la base de datos
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            throw new RuntimeException("Error al crear el ingreso", e);
         }
     }
 	

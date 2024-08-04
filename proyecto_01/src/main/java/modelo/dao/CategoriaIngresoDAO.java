@@ -10,6 +10,8 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import modelo.entidades.Categoria;
 import modelo.entidades.CategoriaIngreso;
 
 public class CategoriaIngresoDAO extends CategoriaDAO {
@@ -75,6 +77,11 @@ public class CategoriaIngresoDAO extends CategoriaDAO {
 	    }
 	}
 	
+	public List<Categoria> getCategoriasIngreso() {
+        String jpql = "SELECT c FROM CategoriaIngreso c";
+        TypedQuery<Categoria> query = em.createQuery(jpql, Categoria.class);
+        return query.getResultList();
+    }
 	
 	
 	

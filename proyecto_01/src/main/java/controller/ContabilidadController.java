@@ -90,8 +90,8 @@ public class ContabilidadController extends HttpServlet {
 		resp.sendRedirect("jsp/login.jsp");
 	}
 	public void ingresar(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		//resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
-		resp.sendRedirect("ContabilidadController?ruta=mostrarFormulario");
+		resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
+		//resp.sendRedirect("ContabilidadController?ruta=mostrarFormulario");
 		//resp.sendRedirect("jsp/createCategoria.jsp");
 		
 		
@@ -182,8 +182,7 @@ public class ContabilidadController extends HttpServlet {
 		    if (categoria instanceof CategoriaIngreso) {
 		        
 		    	movimientosIngreso = ingresoDAO.findMovimientosByCategoriaIngreso(categoria);
-		    			movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosIngreso);
-		    	//List<MovimientoDTO> movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosIngreso);
+		    	movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosIngreso);
 		    	total = categoriaIngresoDAO.getSumByCategory(categoriaId);
 		    	req.setAttribute("movimientos", movimientosDTO);
 		    } else if (categoria instanceof CategoriaEgreso) {
@@ -210,11 +209,54 @@ public class ContabilidadController extends HttpServlet {
 		    req.getRequestDispatcher("jsp/verCategoria.jsp").forward(req, resp);
 	}
 	
+	public void registrarIngresoForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	
+		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
+		
+		
+		Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
+		List<Categoria> categoriasIngreso = categoriaIngresoDAO.getCategoriasIngreso();
+		
+		req.setAttribute("cuenta", cuenta);
+		req.setAttribute("categorias", categoriasIngreso);
+		req.getRequestDispatcher("jsp/registrarIngreso.jsp").forward(req, resp);
+		
 	
 	
+	}
 	
+	public void registrarIngreso(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
+        String concepto = req.getParameter("concepto");
+        double monto = Double.parseDouble(req.getParameter("monto"));
+        String fechaStr = req.getParameter("fecha");
+        int categoriaId = Integer.parseInt(req.getParameter("categoria"));
+        
+        Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
+        
+        Categoria categoria = categoriaIngresoDAO.getCategoriaById(categoriaId);
+        
+        
+        Timestamp fecha = null;
+
+	    try {
+	    	fechaStr = fechaStr.replace("T", " "); // Reemplazar 'T' con un espacio para el formato correcto
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	        fecha = new Timestamp(dateFormat.parse(fechaStr).getTime()); // Convertir la fecha del formulario a un objeto Date
+	    } catch (ParseException e) {
+	        // Manejo de error si la fecha no es válida
+	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
+	        return;
+	    }
+	    
+	    Ingreso nuevoIngreso =  new Ingreso(0,concepto,fecha,monto,(CategoriaIngreso) categoria,cuenta);
+	    ingresoDAO.createIngreso(nuevoIngreso);
+        
+        cuentaDAO.actualizarSaldo(cuentaId, monto);
+        
+        resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId);
 	
-	
+	}
 	//**//
 	
 	
@@ -225,6 +267,7 @@ public class ContabilidadController extends HttpServlet {
         Usuario usuario = usuarioDAO.findUsuarioById(1);
         
         Cuenta cuenta = new Cuenta();
+
         cuenta.setNombreCuenta(nombre);
         cuenta.setTotal(saldo);
         cuenta.setUsuario(usuario);
@@ -361,10 +404,21 @@ public class ContabilidadController extends HttpServlet {
 	                break;
 				case "mostrarFormulario":
 					this.mostrarFormulario(req, resp);
+					break;
 				case "mostrarCuenta":
 					this.mostrarCuenta(req, resp);
+					break;
 				case "mostrarCategoria":
 					this.mostrarCategoria(req, resp);
+					break;
+				case "registrarIngresoForm":
+					this.registrarIngresoForm(req,resp);
+					break;
+					
+				case "registrarIngreso":
+					this.registrarIngreso(req,resp);
+					break;
+					
 				default:
 					
 				}

@@ -31,7 +31,7 @@ public class Ingreso extends Movimiento {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Ingreso(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaIngreso categoriaIngreso, Cuenta cuentaDestino) {
+	public Ingreso(int idMovimiento, String concepto, Date fecha, double valor, CategoriaIngreso categoriaIngreso, Cuenta cuentaDestino) {
 		super(idMovimiento, concepto, fecha, valor);
 		this.categoria = categoriaIngreso;
 		this.destino = cuentaDestino;

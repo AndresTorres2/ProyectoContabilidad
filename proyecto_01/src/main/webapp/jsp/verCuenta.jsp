@@ -48,5 +48,9 @@
             </c:forEach>
         </tbody>
     </table>
+    
+    <a href="ContabilidadController?ruta=registrarIngresoForm&cuentaId=${cuenta.idCuenta}" >Registrar un Nuevo Ingreso</a>
+    <br><br>
+    <a href="ContabilidadController?ruta=mostrardashboard" >Regresar</a>
 </body>
 </html>
