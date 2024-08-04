@@ -40,6 +40,7 @@ import modelo.dao.IngresoDAO;
 import modelo.dao.MovimientoDAO;
 import modelo.dao.TransferenciaDAO;
 import modelo.dao.UsuarioDAO;
+import modelo.dto.MovimientoDTO;
 @WebServlet("/ContabilidadController")
 
 public class ContabilidadController extends HttpServlet {
@@ -59,6 +60,7 @@ public class ContabilidadController extends HttpServlet {
 	private EgresoDAO egresoDAO;
 	private IngresoDAO ingresoDAO;
 	private TransferenciaDAO transferenciaDAO;
+	private MovimientoDTO movimientoDTO;
 	private static final long serialVersionUID = 1L;
 	
 	@Override
@@ -67,6 +69,7 @@ public class ContabilidadController extends HttpServlet {
 		cuentaDAO = new CuentaDAO();
 		categoriaDAO = new CategoriaDAO();
 		movimientoDAO = new MovimientoDAO();
+		movimientoDTO = new MovimientoDTO();
 		
 		categoriaIngresoDAO = new CategoriaIngresoDAO();
 		categoriaEgresoDAO =  new CategoriaEgresoDAO();
@@ -103,8 +106,8 @@ public class ContabilidadController extends HttpServlet {
 		List<CategoriaIngreso> ingresos = new ArrayList<>();
 	    List<CategoriaEgreso> egresos = new ArrayList<>();
 	    List<CategoriaTransferencia> transferencias = new ArrayList<>();
-	    
-	    List<Movimiento> movimientos = movimientoDAO.getAllMovements();
+	    List<Movimiento> movimientos = movimientoDAO.getAllMovements(); 
+	    List<MovimientoDTO> movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientos);
 	    Map<String, Double> ingresosTotales = categoriaIngresoDAO.getAllSumarized();
 	    Map<String, Double> totalEgresos = categoriaEgresoDAO.getAllSumarized();
 	    Map<String, Double> transferenciasTotales = categoriaTransferenciaDAO.getAllSumarized();
@@ -120,11 +123,12 @@ public class ContabilidadController extends HttpServlet {
 	        }
 	    }
 
+ 
         req.setAttribute("cuentas", cuentas);
         req.setAttribute("ingresos", ingresos);
         req.setAttribute("egresos", egresos);
         req.setAttribute("transferencias", transferencias);
-        req.setAttribute("movimientos", movimientos);
+        req.setAttribute("movimientos", movimientosDTO);
         req.setAttribute("totalIngresos", ingresosTotales);
         req.setAttribute("totalEgresos", totalEgresos);
         req.setAttribute("totalTransferencias", transferenciasTotales);
@@ -140,11 +144,25 @@ public class ContabilidadController extends HttpServlet {
 	    
 	    // Obtener la cuenta y sus movimientos desde el DAO
 	    Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
-	    List<Movimiento> movimientos = movimientoDAO.getMovimientosByCuenta(cuenta);
+	    
+	    List<Movimiento> movimientosEgreso =  egresoDAO.getMovimientosByCuenta(cuenta);
+		List<Movimiento> movimientosIngreso = ingresoDAO.getMovimientosByCuenta(cuenta);
+		List<Movimiento> movimientosTransferencia = transferenciaDAO.getMovimientosByCuenta(cuenta);
+	    
+	    
+		List<Movimiento> movimientos = new ArrayList<>();
+		movimientos.addAll(movimientosEgreso);
+		movimientos.addAll(movimientosIngreso);
+		movimientos.addAll(movimientosTransferencia);
+
+	    List<MovimientoDTO> movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientos);
+	    
+	    
+	    
 	    
 	    // Establecer atributos en la solicitud
 	    req.setAttribute("cuenta", cuenta);
-	    req.setAttribute("movimientos", movimientos);
+	    req.setAttribute("movimientos", movimientosDTO);
 	    
 	    // Redirigir a la vista verCuenta.jsp
 	    req.getRequestDispatcher("jsp/verCuenta.jsp").forward(req, resp);
@@ -156,24 +174,32 @@ public class ContabilidadController extends HttpServlet {
 		 int categoriaId = Integer.parseInt(req.getParameter("categoriaId"));
 		 Categoria categoria = categoriaDAO.findCategoriaById(categoriaId);
 		 //List<Movimiento> movimientos;
-		 List<Egreso> movimientosEgreso = null;
-		 List<Ingreso> movimientosIngreso = null;
-		 List<Transferencia> movimientosTransferencia = null;
+		 List<Movimiento> movimientosEgreso = null;
+		 List<Movimiento> movimientosIngreso = null;
+		 List<Movimiento> movimientosTransferencia = null;
 		 double total = 0.0;
+		 List<MovimientoDTO> movimientosDTO = null;
 		    if (categoria instanceof CategoriaIngreso) {
 		        
 		    	movimientosIngreso = ingresoDAO.findMovimientosByCategoriaIngreso(categoria);
+		    			movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosIngreso);
+		    	//List<MovimientoDTO> movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosIngreso);
 		    	total = categoriaIngresoDAO.getSumByCategory(categoriaId);
-		    	req.setAttribute("movimientos", movimientosIngreso);
+		    	req.setAttribute("movimientos", movimientosDTO);
 		    } else if (categoria instanceof CategoriaEgreso) {
 		    	movimientosEgreso = egresoDAO.findMovimientosByCategoriaEgreso(categoria);
+		    	movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosEgreso);
+		    	
+		    	
 		    	total = categoriaEgresoDAO.getSumByCategory(categoriaId);
 		    	
-		    	req.setAttribute("movimientos", movimientosEgreso);
+		    	req.setAttribute("movimientos", movimientosDTO);
 		    	
 		    } else if (categoria instanceof CategoriaTransferencia) {
 		    	movimientosTransferencia = transferenciaDAO.findMovimientosByCategoriaTransferencia(categoria);
+		    	movimientosDTO = movimientoDTO.getAllMovementsDTO(movimientosTransferencia);
 		        total = categoriaTransferenciaDAO.getSumByCategory(categoriaId);
+		        req.setAttribute("movimientos", movimientosDTO);
 		    }
 		    
 		   
@@ -204,8 +230,8 @@ public class ContabilidadController extends HttpServlet {
         cuenta.setUsuario(usuario);
 
         cuentaDAO.createCuenta(cuenta);
-        //resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
-        resp.sendRedirect("jsp/createCategoria.jsp");
+        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
+        //resp.sendRedirect("jsp/createCategoria.jsp");
     }
 	
 	public void crearCategoria(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -264,16 +290,22 @@ public class ContabilidadController extends HttpServlet {
 	    if (categoria instanceof CategoriaIngreso) {
 	        movimiento = new Ingreso();
 	        ((Ingreso) movimiento).setCategoria((CategoriaIngreso) categoria);
+	        ((Ingreso) movimiento).setDestino(destino);
+	        
 	    } else if (categoria instanceof CategoriaEgreso) {
 	        movimiento = new Egreso();
 	        ((Egreso) movimiento).setCategoria((CategoriaEgreso) categoria);
+	        ((Egreso) movimiento).setOrigen(origen);
+	        
 	        monto = -monto;
 	    } else if (categoria instanceof CategoriaTransferencia) {
 	        movimiento = new Transferencia();
 	        ((Transferencia) movimiento).setCategoria((CategoriaTransferencia) categoria);
+	        ((Transferencia) movimiento).setOrigen(origen);
+	        ((Transferencia) movimiento).setDestino(destino);
 	    } else {
 	        // Manejo de error si la categoría no es válida
-	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Categoría inválida");
+	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Categoría inválida o Cuenta Invalida");
 	        return;
 	    }
 
@@ -281,8 +313,6 @@ public class ContabilidadController extends HttpServlet {
 	        movimiento.setConcepto(concepto);
 	        movimiento.setMonto(monto);
 	        movimiento.setFecha(fecha);
-	        movimiento.setOrigen(origen);
-	        movimiento.setDestino(destino);
 
 	        
 	        movimientoDAO.createMovimiento(movimiento);

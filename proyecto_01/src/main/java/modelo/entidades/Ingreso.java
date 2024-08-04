@@ -7,8 +7,13 @@ import jakarta.persistence.*;
 
 @Entity
 @DiscriminatorValue("INGRESO")
-public class Ingreso extends Movimiento {   
+public class Ingreso extends Movimiento {  
+	
 
+
+	@ManyToOne
+	@JoinColumn(name= "destino")
+	private Cuenta destino;
 	/**
 	 * 
 	 */
@@ -26,19 +31,22 @@ public class Ingreso extends Movimiento {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Ingreso(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaIngreso categoriaIngreso) {
-		super(idMovimiento, concepto, fecha, valor, origen, destino);
+	public Ingreso(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaIngreso categoriaIngreso, Cuenta cuentaDestino) {
+		super(idMovimiento, concepto, fecha, valor);
 		this.categoria = categoriaIngreso;
+		this.destino = cuentaDestino;
 		// TODO Auto-generated constructor stub
 	}
 	
-	
-	
-	
-	
-	
-	
-	
+
+	public Cuenta getDestino() {
+		return destino;
+	}
+
+	public void setDestino(Cuenta destino) {
+		this.destino = destino;
+	}
+
 	public CategoriaIngreso getCategoria() {
 		return categoria;
 	}
@@ -47,5 +55,10 @@ public class Ingreso extends Movimiento {
 		this.categoria = categoriaIngreso;
 	}
 
+
+	
+	
+	
+	
 	
 }

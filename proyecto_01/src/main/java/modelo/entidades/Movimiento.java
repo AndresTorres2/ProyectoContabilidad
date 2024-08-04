@@ -31,12 +31,7 @@ public class Movimiento implements Serializable {
 	@Column(name="monto")
 	private double monto;
 	
-	@ManyToOne
-	@JoinColumn(name= "origen")
-	private Cuenta origen;
-	@ManyToOne
-	@JoinColumn(name= "destino")
-	private Cuenta destino;
+	
 	
 	
 	
@@ -45,14 +40,13 @@ public class Movimiento implements Serializable {
 		
 	}
 	
-	public Movimiento(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origenCuenta, Cuenta destinoCuenta) {
+	public Movimiento(int idMovimiento, String concepto, Date fecha, double valor) {
 		super();
 		this.idMovimiento = idMovimiento;
 		this.concepto = concepto;
 		this.fecha = fecha;
 		this.monto = valor;
-		origen = origenCuenta;
-		destino = destinoCuenta;
+
 	}
 
 
@@ -82,24 +76,7 @@ public class Movimiento implements Serializable {
 	}
 	
 	
-	 public Cuenta getOrigen() {
-		return origen;
-	}
 
-	public void setOrigen(Cuenta origenCuenta) {
-		origen = origenCuenta;
-	}
-
-	public Cuenta getDestino() {
-		return destino;
-	}
-
-	public void setDestino(Cuenta destinoCuenta) {
-		destino = destinoCuenta;
-	}
-
-	
-	
 	
 	
 }

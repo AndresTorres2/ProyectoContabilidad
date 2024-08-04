@@ -1,14 +1,20 @@
 package modelo.dao;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
+import modelo.dto.MovimientoDTO;
+
 import modelo.entidades.Categoria;
 import modelo.entidades.Cuenta;
+import modelo.entidades.Egreso;
+import modelo.entidades.Ingreso;
 import modelo.entidades.Movimiento;
 
 public class MovimientoDAO {
@@ -26,15 +32,19 @@ public class MovimientoDAO {
         em.persist(movimiento);
         em.getTransaction().commit();
     }
-	public  List<Movimiento> getAllMovements() {
-        
-		return em.createQuery("SELECT m FROM Movimiento m", Movimiento.class).getResultList();
-    }
+	
 	public Movimiento findMovimientoById(int id) {
         return em.find(Movimiento.class, id);
     }
 	
+	public List<Movimiento> getAllMovements() {
+        
+		return em.createQuery("SELECT m FROM Movimiento m", Movimiento.class).getResultList();
+    }
 	
+
+	
+	//Ya no se usa
 	public List<Movimiento> getMovimientosByCuenta(Cuenta cuenta) {
         try {
             // JPQL para obtener movimientos por el ID de la cuenta
@@ -50,6 +60,9 @@ public class MovimientoDAO {
             return Collections.emptyList(); // Retornar una lista vacía en caso de error
         }
     }
+	
+	
+
 
 	/*public List<Movimiento> findMovimientosByCategoria(Categoria categoria) {
 	    try {
@@ -66,5 +79,6 @@ public class MovimientoDAO {
 	    }
 	}*/
 
+	
 	
 }

@@ -32,8 +32,8 @@
                     <td>${movimiento.concepto}</td>
                     <td>${movimiento.fecha}</td>
                     <td>${movimiento.monto}</td>
-                    <td>${movimiento.origen.nombreCuenta}</td>
-                    <td>${movimiento.destino.nombreCuenta}</td>
+                    <td>${movimiento.origen}</td>
+                    <td>${movimiento.destino}</td>
                 </tr>
             </c:forEach>
         </tbody>

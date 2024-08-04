@@ -99,9 +99,9 @@
                     <td>${movimiento.concepto}</td>
                     <td>${movimiento.fecha}</td>
                     <td>${movimiento.monto}</td>
-                    <td>${movimiento.origen.nombreCuenta}</td>
-                    <td>${movimiento.destino.nombreCuenta}</td>
-                    <td>${movimiento.categoria.nombreCategoria}</td>
+                    <td>${movimiento.origen}</td>
+                    <td>${movimiento.destino}</td>
+                    <td>${movimiento.categoria}</td>
                 </tr>
             </c:forEach>
         </tbody>

@@ -12,6 +12,10 @@ public class Egreso extends Movimiento {
 	/**
 	 * 
 	 */
+	
+	@ManyToOne
+	@JoinColumn(name= "origen")
+	private Cuenta origen;
 	private static final long serialVersionUID = 1L;
 	@ManyToOne
 	@JoinColumn(name= "categoria")
@@ -20,14 +24,23 @@ public class Egreso extends Movimiento {
 	
 	
 
+	public Cuenta getOrigen() {
+		return origen;
+	}
+
+	public void setOrigen(Cuenta origen) {
+		this.origen = origen;
+	}
+
 	public Egreso() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Egreso(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaEgreso categoriaEgreso) {
-		super(idMovimiento, concepto, fecha, valor, origen, destino);
+	public Egreso(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaEgreso categoriaEgreso, Cuenta origenCuenta) {
+		super(idMovimiento, concepto, fecha, valor);
 		this.categoria = categoriaEgreso;
+		this.origen = origenCuenta;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -46,6 +59,9 @@ public class Egreso extends Movimiento {
 		this.categoria = categoriaEgreso;
 	}
 
+
+	
+	
 	
 	
 	
