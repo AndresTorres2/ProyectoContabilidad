@@ -37,7 +37,7 @@ public class Egreso extends Movimiento {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Egreso(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaEgreso categoriaEgreso, Cuenta origenCuenta) {
+	public Egreso(int idMovimiento, String concepto, Date fecha, double valor, CategoriaEgreso categoriaEgreso, Cuenta origenCuenta) {
 		super(idMovimiento, concepto, fecha, valor);
 		this.categoria = categoriaEgreso;
 		this.origen = origenCuenta;

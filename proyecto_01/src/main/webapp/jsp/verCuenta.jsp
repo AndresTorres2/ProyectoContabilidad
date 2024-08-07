@@ -8,6 +8,11 @@
 </head>
 <body>
     <h1>Detalles de la Cuenta</h1>
+     <!-- Mostrar mensaje de éxito si está presente -->
+    <c:if test="${param.mensaje != null}">
+        <p style="color: green;">${param.mensaje}</p>
+    </c:if>
+    
     
     <h2>Cuenta ${cuenta.nombreCuenta} </h2>
     <table border="1">
@@ -50,6 +55,10 @@
     </table>
     
     <a href="ContabilidadController?ruta=registrarIngresoForm&cuentaId=${cuenta.idCuenta}" >Registrar un Nuevo Ingreso</a>
+    <br><br>
+    <a href="ContabilidadController?ruta=registrarEgresoForm&cuentaId=${cuenta.idCuenta}" >Registrar un Nuevo Egreso</a>
+    <br><br>
+    <a href="ContabilidadController?ruta=registrarTransferenciaForm&cuentaId=${cuenta.idCuenta}" >Registrar una Nueva Transferencia</a>
     <br><br>
     <a href="ContabilidadController?ruta=mostrardashboard" >Regresar</a>
 </body>

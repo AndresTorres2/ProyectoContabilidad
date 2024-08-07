@@ -4,11 +4,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Registrar Ingreso</title>
+    <title>Registrar Transferencia</title>
 </head>
 <body>
-    <h1>Nuevo Ingreso</h1>
-    <form action="ContabilidadController?ruta=registrarIngreso&cuentaId=${cuenta.idCuenta}" method="post">
+    <h1>Nueva Transferencia</h1>
+    <form action="ContabilidadController?ruta=transferir&cuentaOrigenId=${cuenta.idCuenta}" method="post">
         <label for="concepto">Concepto:</label>
         <input type="text" id="concepto" name="concepto" required><br>
         
@@ -19,19 +19,26 @@
 		<input type="datetime-local" id="fecha" name="fecha" required><br>
 
         
-        <label for="destino">Cuenta de Destino:</label>
-        <input type="text" id="destino" name="destino" value="${cuenta.nombreCuenta}" readonly><br>
+        <label for="origen">Cuenta de Origen:</label>
+        <input type="text" id="origen" name="origen" value="${cuenta.nombreCuenta}" readonly><br>
         
-        <br>
+        <label for="destino">Cuenta de Destino:</label>
+        <select id="destino" name="destino" required>
+            <c:forEach var="cuentaDestino" items="${cuentasDestino}">
+                <option value="${cuentaDestino.idCuenta}">${cuentaDestino.nombreCuenta}</option>
+                
+            </c:forEach>  
+        </select><br>
         
         <label for="categoria">Categoría:</label>
         <select id="categoria" name="categoria" required>
             <c:forEach var="categoria" items="${categorias}">
                 <option value="${categoria.idCategoria}">${categoria.nombreCategoria}</option>
             </c:forEach>   
-        </select><br>
+        </select>
+        <br>
         
-        <input type="submit" value="Registrar Ingreso">
+        <input type="submit" value="Registrar Transferencia">
         
         <br>
         <br>

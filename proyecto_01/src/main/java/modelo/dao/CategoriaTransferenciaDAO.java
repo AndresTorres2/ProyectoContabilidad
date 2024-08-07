@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import modelo.entidades.Categoria;
 import modelo.entidades.CategoriaTransferencia;
 
@@ -23,8 +24,8 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
 		
 	}
 
-	public void saveCategoriaIngreso(CategoriaTransferencia categoriaIngreso) {
-        super.saveCategoria(categoriaIngreso);
+	public void saveCategoriaTransferencia(CategoriaTransferencia categoriaTransferencia) {
+        super.saveCategoria(categoriaTransferencia);
     }
 	
 	public Map<String, Double> getAllSumarized() {
@@ -75,6 +76,12 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
 	        return 0.0; // Retornar 0 en caso de error
 	    }
 	}
+	
+	public List<Categoria> getCategoriasTransferencia() {
+        String jpql = "SELECT c FROM CategoriaTransferencia c";
+        TypedQuery<Categoria> query = em.createQuery(jpql, Categoria.class);
+        return query.getResultList();
+    }
 
 	
 }

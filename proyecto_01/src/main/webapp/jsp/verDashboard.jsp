@@ -106,5 +106,7 @@
             </c:forEach>
         </tbody>
     </table>
+    <br><br>
+    <a href="ContabilidadController?ruta=mostrarFormularioCuenta&idUsuario=${usuario.idUsuario}" >Crear Cuenta(En Construcción)</a>
 </body>
 </html>

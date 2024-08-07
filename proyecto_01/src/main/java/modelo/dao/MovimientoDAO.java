@@ -16,6 +16,7 @@ import modelo.entidades.Cuenta;
 import modelo.entidades.Egreso;
 import modelo.entidades.Ingreso;
 import modelo.entidades.Movimiento;
+import modelo.entidades.Transferencia;
 
 public class MovimientoDAO {
 
@@ -60,6 +61,50 @@ public class MovimientoDAO {
             return Collections.emptyList(); // Retornar una lista vacía en caso de error
         }
     }
+	
+	
+	 private  MovimientoDTO toMovimientoDTO(Movimiento movimiento) {
+	        int idMovimiento = movimiento.getIdMovimiento();
+	        String concepto = movimiento.getConcepto();
+	        Date fecha = movimiento.getFecha();
+	        Double monto = movimiento.getMonto();
+	        
+	        String categoria = "";
+	        String origen = "";
+	        String destino = "";
+
+	        if (movimiento instanceof Egreso) {
+	            Egreso egreso = (Egreso) movimiento;
+	            categoria = egreso.getCategoria().getNombreCategoria();
+	            origen = egreso.getOrigen().getNombreCuenta(); // Obtener el origen
+	            destino = "EGRESO"; // Valor predeterminado para Egreso
+	        } else if (movimiento instanceof Ingreso) {
+	            Ingreso ingreso = (Ingreso) movimiento;
+	            categoria  =ingreso.getCategoria().getNombreCategoria();
+	            destino = ingreso.getDestino().getNombreCuenta(); // Obtener el destino
+	            origen = "INGRESO"; // Valor predeterminado para Ingreso
+	        }else if (movimiento instanceof Transferencia) {
+	            Transferencia transferencia = (Transferencia) movimiento;
+	            categoria = transferencia.getCategoria().getNombreCategoria();
+	            origen = transferencia.getOrigen().getNombreCuenta(); // Obtener la cuenta de origen
+	            destino = transferencia.getDestino().getNombreCuenta(); // Obtener la cuenta de destino
+	             // Valor predeterminado para Transferencia
+	        }
+
+	        return new MovimientoDTO(idMovimiento, concepto, fecha, monto, categoria, origen, destino);
+	    }
+	    
+	    
+	    public List<MovimientoDTO> getAllMovementsDTO(List<Movimiento> movimientos) {
+	        List<MovimientoDTO> movimientosDTO = new ArrayList<>();
+
+	        for (Movimiento movimientoNew : movimientos) {
+	            MovimientoDTO dto = toMovimientoDTO(movimientoNew);
+	            movimientosDTO.add(dto);
+	        }
+
+	        return movimientosDTO;
+	    }
 	
 	
 

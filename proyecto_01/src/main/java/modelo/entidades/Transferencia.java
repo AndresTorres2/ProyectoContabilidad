@@ -1,6 +1,7 @@
 package modelo.entidades;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -29,7 +30,7 @@ public class Transferencia extends Movimiento {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Transferencia(int idMovimiento, String concepto, Date fecha, double valor, Cuenta origen, Cuenta destino, CategoriaTransferencia categoriaTransferencia,  Cuenta origenCuenta, Cuenta destinoCuenta) {
+	public Transferencia(int idMovimiento, String concepto, Timestamp fecha, double valor, CategoriaTransferencia categoriaTransferencia,  Cuenta origenCuenta, Cuenta destinoCuenta) {
 		super(idMovimiento, concepto, fecha, valor);
 		this.categoria = categoriaTransferencia;
 		this.origen = origenCuenta;

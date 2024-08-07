@@ -92,42 +92,7 @@ public class MovimientoDTO {
         this.destino = destino;
     }
     
-    public  MovimientoDTO toMovimientoDTO(Movimiento movimiento) {
-        int idMovimiento = movimiento.getIdMovimiento();
-        String concepto = movimiento.getConcepto();
-        Date fecha = movimiento.getFecha();
-        Double monto = movimiento.getMonto();
-        
-        String categoria = "";
-        String origen = "";
-        String destino = "";
-
-        if (movimiento instanceof Egreso) {
-            Egreso egreso = (Egreso) movimiento;
-            categoria = egreso.getCategoria().getNombreCategoria();
-            origen = egreso.getOrigen().getNombreCuenta(); // Obtener el origen
-            destino = "EGRESO"; // Valor predeterminado para Egreso
-        } else if (movimiento instanceof Ingreso) {
-            Ingreso ingreso = (Ingreso) movimiento;
-            categoria  =ingreso.getCategoria().getNombreCategoria();
-            destino = ingreso.getDestino().getNombreCuenta(); // Obtener el destino
-            origen = "INGRESO"; // Valor predeterminado para Ingreso
-        }
-
-        return new MovimientoDTO(idMovimiento, concepto, fecha, monto, categoria, origen, destino);
-    }
-    
-    
-    public List<MovimientoDTO> getAllMovementsDTO(List<Movimiento> movimientos) {
-        List<MovimientoDTO> movimientosDTO = new ArrayList<>();
-
-        for (Movimiento movimientoNew : movimientos) {
-            MovimientoDTO dto = toMovimientoDTO(movimientoNew);
-            movimientosDTO.add(dto);
-        }
-
-        return movimientosDTO;
-    }
+   
     
 	/*
     public List<MovimientoDTO> getMovimientosDTOByCuenta(Cuenta cuenta) {

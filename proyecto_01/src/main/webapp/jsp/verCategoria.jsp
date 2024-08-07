@@ -38,5 +38,8 @@
             </c:forEach>
         </tbody>
     </table>
+    
+    <br><br>
+    <a href="ContabilidadController?ruta=mostrardashboard" >Regresar</a>
 </body>
 </html>

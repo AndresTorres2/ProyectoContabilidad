@@ -7,14 +7,21 @@
 </head>
 <body>
     <h1>Crear Nueva Cuenta</h1>
-    <form action="../ContabilidadController?ruta=createCuenta" method="post">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required><br>
+    <form action="../ContabilidadController?ruta=createCuenta&idUsuario=${usuario.idUsuario}" method="post">
+        
+        <label for="nombre">Nombre del Propietario:</label>
+        <input type="text" id="nombre" name="nombre" value="${usuario.nombre}" readonly><br>
+        
+        <label for="nombreCuenta">Nombre de la Cuenta:</label>
+        <input type="text" id="nombreCuenta" name="nombreCuenta" required><br>
+        
         <label for="saldo">Saldo:</label>
         <input type="number" id="saldo" name="saldo" step="0.01" required><br>
-        <label for="idUsuario">ID Usuario:</label>
-        <input type="number" id="idUsuario" name="idUsuario" required><br>
+        
+       
+        
         <input type="submit" value="Crear Cuenta">
     </form>
 </body>
 </html>
+

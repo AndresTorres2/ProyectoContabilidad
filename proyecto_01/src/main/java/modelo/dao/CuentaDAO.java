@@ -45,7 +45,14 @@ public class CuentaDAO  {
             Cuenta cuenta = em.find(Cuenta.class, cuentaId);
             if (cuenta != null) {
                 // Actualiza el saldo
-                cuenta.setTotal(monto + cuenta.getTotal());
+            	double nuevoSaldo = cuenta.getTotal() + monto;
+            	if (nuevoSaldo < 0) {
+                    // Si el saldo es negativo, cancela la transacción y lanza una excepción
+                    transaction.rollback();
+                    throw new RuntimeException("El valor ingresado supera el saldo total de la cuenta.");
+                }
+            	
+                cuenta.setTotal(nuevoSaldo);
                 em.merge(cuenta); // Sincroniza el estado de la entidad con la base de datos
             }
             

@@ -4,11 +4,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Crear Movimiento</title>
+    <title>Registrar Egreso</title>
 </head>
 <body>
-    <h1>Crear Movimiento</h1>
-    <form action="ContabilidadController?ruta=createMovimiento" method="post">
+    <h1>Nuevo Egreso</h1>
+    <form action="ContabilidadController?ruta=registrarEgreso&cuentaId=${cuenta.idCuenta}" method="post">
         <label for="concepto">Concepto:</label>
         <input type="text" id="concepto" name="concepto" required><br>
         
@@ -20,27 +20,22 @@
 
         
         <label for="origen">Cuenta de Origen:</label>
-        <select id="origen" name="origen" required>
-            <c:forEach var="cuenta" items="${cuentas}">
-                <option value="${cuenta.idCuenta}">${cuenta.nombreCuenta}</option>
-            </c:forEach>
-        </select><br>
+        <input type="text" id="origen" name="origen" value="${cuenta.nombreCuenta}" readonly><br>
         
-        <label for="destino">Cuenta de Destino:</label>
-        <select id="destino" name="destino" required>
-            <c:forEach var="cuenta" items="${cuentas}">
-                <option value="${cuenta.idCuenta}">${cuenta.nombreCuenta}</option>
-            </c:forEach>
-        </select><br>
+        <br>
         
         <label for="categoria">Categoría:</label>
         <select id="categoria" name="categoria" required>
             <c:forEach var="categoria" items="${categorias}">
                 <option value="${categoria.idCategoria}">${categoria.nombreCategoria}</option>
-            </c:forEach>
+            </c:forEach>   
         </select><br>
         
-        <input type="submit" value="Crear Movimiento">
+        <input type="submit" value="Registrar Egreso">
+        
+        <br>
+        <br>
+        <a href="ContabilidadController?ruta=mostrarCuenta&cuentaId=${cuenta.idCuenta}" >Cancelar</a>
     </form>
 </body>
 </html>
