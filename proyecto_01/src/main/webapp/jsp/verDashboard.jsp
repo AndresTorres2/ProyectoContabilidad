@@ -9,6 +9,16 @@
 <body>
 	<h1>Estado de la Contabilidad</h1>
 	
+	<form action="ContabilidadController?ruta=mostrardashboard" method="post">
+	    <label for="fechaInicio">Fecha Inicio:</label>
+	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" />
+	
+	    <label for="fechaFin">Fecha Fin:</label>
+	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" />
+	
+	    <input type="submit" value="Filtrar" />
+	</form>
+	
     <h2>Consolidado de las Cuentas</h2>
      <table border="1">
         <thead>
@@ -106,7 +116,7 @@
                     <td>${movimiento.origen}</td>
                     <td>${movimiento.destino}</td>
                     <td>${movimiento.categoria}</td>
-                    <td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar</a> </td>
+                    <td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar(En Construcción)</a> </td>
                      <td> <a href="#" class="eliminarMovimiento" data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
                 </tr>
             </c:forEach>

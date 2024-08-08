@@ -9,6 +9,14 @@
 <body>
     <h1>Detalles de la Categoría</h1>
     
+   
+	    <label for="fechaInicio">Fecha Inicio:</label>
+	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" />
+	
+	    <label for="fechaFin">Fecha Fin:</label>
+	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" />
+	
+    
     <h2>Nombre de la Categoría</h2>
     <p>${categoria.nombreCategoria}</p>
     
@@ -34,7 +42,7 @@
                     <td>${movimiento.monto}</td>
                     <td>${movimiento.origen}</td>
                     <td>${movimiento.destino}</td>
-                    <td> <a href="#" class="eliminarMovimiento" data-idCategoria="${categoria.idCategoria} " data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
+                    <td> <a href="#" class="eliminarMovimiento" data-idCategoria="${categoria.idCategoria}"data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
                 </tr>
             </c:forEach>
         </tbody>
@@ -53,13 +61,13 @@ document.addEventListener("DOMContentLoaded", function() {
             var idMovimiento = this.getAttribute("data-id");
             var conceptoMovimiento = this.getAttribute("data-nombre");
             var  idCategoria =  this.getAttribute("data-idCategoria");
-            var origen = "verCategoria";
+            var origen = "mostrarCategoria";
             
             var confirmacion = confirm("¿Desea eliminar este movimiento: " + conceptoMovimiento + "?");
             
             if (confirmacion) {
                 // Redirige al controlador para eliminar la categoría
-                window.location.href = "ContabilidadController?ruta=eliminarMovimiento&idMovimiento=" + idMovimiento + "&idCategoria="+ idCategoria + "&vistaOrigen=" + encodeURIComponent(origen);
+                window.location.href = "ContabilidadController?ruta=eliminarMovimiento&idMovimiento=" + idMovimiento + "&idCategoria="+ idCategoria + "&vistaOrigen=" + origen;
             }
         });
     });

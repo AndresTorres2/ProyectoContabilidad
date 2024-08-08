@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import java.sql.Timestamp;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
@@ -44,21 +46,24 @@ public class MovimientoDAO {
         
 		return em.createQuery("SELECT m FROM Movimiento m", Movimiento.class).getResultList();
     }
-	public List<Movimiento> getAllMovementsByUserId(int usuarioId) {
+	public List<Movimiento> getAllMovementsByUserId(int usuarioId, Timestamp fechaInicio, Timestamp fechaFin) {
 		String sql = "SELECT m.* FROM Movimiento m " +
                 "LEFT JOIN Cuenta c_origen ON m.origen = c_origen.idCuenta " +
                 "LEFT JOIN Cuenta c_destino ON m.destino = c_destino.idCuenta " +
-                "WHERE c_origen.propietario = ? OR c_destino.propietario = ?";
+                "WHERE (c_origen.propietario = ? OR c_destino.propietario = ?) " +
+                "AND m.fecha BETWEEN ? AND ?";
    
 	   Query query = em.createNativeQuery(sql, Movimiento.class);
 	   query.setParameter(1, usuarioId);
 	   query.setParameter(2, usuarioId);
+	   query.setParameter(3, fechaInicio);
+	   query.setParameter(4, fechaFin);
 	   return query.getResultList();
 	}
 	
 
 	
-	//Ya no se usa
+	
 	public List<Movimiento> getMovimientosByCuenta(Cuenta cuenta) {
         try {
             // JPQL para obtener movimientos por el ID de la cuenta
@@ -125,7 +130,7 @@ public class MovimientoDAO {
         try {
             transaction.begin();
 
-            System.out.println("Intentando eliminar la categoría con ID: " + idMovimiento);
+            System.out.println("Intentando eliminar movimiento con ID: " + idMovimiento);
 
             // Buscar la categoría por su ID
             Movimiento movimiento = em.find(Movimiento.class, idMovimiento);

@@ -3,6 +3,9 @@ package controller;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -101,6 +104,25 @@ public class ContabilidadController extends HttpServlet {
 	  
 	    if (usuario != null) {
 	    	HttpSession session = req.getSession(true);
+	    	
+	    	LocalDate hoy = LocalDate.now();
+	    	LocalDate primerDiaDelMes = hoy.withDayOfMonth(1);
+
+	    	// Generar LocalDateTime para el inicio y fin del periodo
+	    	LocalDateTime fechaInicio = primerDiaDelMes.atStartOfDay();
+	    	LocalDateTime fechaFin = hoy.atTime(23, 59, 59);
+
+	    	// Formatear fechas para que sean compatibles con el input datetime-local
+	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+	    	String fechaInicioStr = fechaInicio.format(formatter);
+	    	String fechaFinStr = fechaFin.format(formatter);
+	        
+	        // Guardar fechas en la sesión
+	        session.setAttribute("fechaInicio", fechaInicioStr);
+	        session.setAttribute("fechaFin", fechaFinStr);
+	        
+	        System.out.println("Fecha de Inicio: " + fechaInicioStr);
+	        System.out.println("Fecha de Fin: " + fechaFinStr);
 	    	req.getSession().setAttribute("usuarioId", usuario.getIdUsuario()); 
 	    	session.setMaxInactiveInterval(30 * 60);
 	        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
@@ -127,21 +149,67 @@ public class ContabilidadController extends HttpServlet {
 	
 	public void mostrarDashboard(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
-		int usuarioId =(int) req.getSession().getAttribute("usuarioId"); 
-		
+		int usuarioId =(int) req.getSession().getAttribute("usuarioId");
+		HttpSession session = req.getSession();
+
+	    // Leer fechas desde la solicitud
+	    String fechaInicioStr = req.getParameter("fechaInicio");
+	    String fechaFinStr = req.getParameter("fechaFin");
+
+	    // Usar formato para fechas
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+	    LocalDateTime fechaInicio;
+	    LocalDateTime fechaFin;
+
+	    if (fechaInicioStr != null && !fechaInicioStr.isEmpty() &&
+	        fechaFinStr != null && !fechaFinStr.isEmpty()) {
+	        // Si se proporcionan nuevas fechas, usarlas
+	        fechaInicio = LocalDateTime.parse(fechaInicioStr, formatter);
+	        fechaFin = LocalDateTime.parse(fechaFinStr, formatter);
+	    } else {
+	        // Si no se proporcionan fechas, usar las fechas almacenadas en la sesión
+	        String fechaInicioSessionStr = (String) session.getAttribute("fechaInicio");
+	        String fechaFinSessionStr = (String) session.getAttribute("fechaFin");
+
+	        if (fechaInicioSessionStr != null && !fechaInicioSessionStr.isEmpty() &&
+	            fechaFinSessionStr != null && !fechaFinSessionStr.isEmpty()) {
+	            // Convertir las fechas de la sesión a LocalDateTime
+	            fechaInicio = LocalDateTime.parse(fechaInicioSessionStr, formatter);
+	            fechaFin = LocalDateTime.parse(fechaFinSessionStr, formatter);
+	        } else {
+	            // Establecer fechas predeterminadas si no hay fechas en la sesión
+	            fechaInicio = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+	            fechaFin = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+	        }
+	    }
+
+	    // Guardar las fechas en la sesión
+	    session.setAttribute("fechaInicio", fechaInicio.format(formatter));
+	    session.setAttribute("fechaFin", fechaFin.format(formatter));
+
+	    Timestamp fechaInicioTimestamp = Timestamp.valueOf(fechaInicio);
+	    Timestamp fechaFinTimestamp = Timestamp.valueOf(fechaFin);
+	    
+	    
+	    
+	    
 		List<Cuenta> cuentas = cuentaDAO.getAllAccountsByUserId(usuarioId);
 		List<Categoria> categorias = categoriaDAO.findAll();
+		
+		
+		
 		    
 		List<CategoriaIngreso> ingresos = new ArrayList<>();
 	    List<CategoriaEgreso> egresos = new ArrayList<>();
 	    List<CategoriaTransferencia> transferencias = new ArrayList<>();
 	    
-	    List<Movimiento> movimientos = movimientoDAO.getAllMovementsByUserId(usuarioId);
+	    List<Movimiento> movimientos = movimientoDAO.getAllMovementsByUserId(usuarioId,fechaInicioTimestamp,fechaFinTimestamp);
 	    List<MovimientoDTO> movimientosDTO = movimientoDAO.getAllMovementsDTO(movimientos);
 	    
-	    Map<String, Double> ingresosTotales = categoriaIngresoDAO.getAllSumarizedByUserId(usuarioId);
-	    Map<String, Double> totalEgresos = categoriaEgresoDAO.getAllSumarizedByUserId(usuarioId);
-	    Map<String, Double> transferenciasTotales = categoriaTransferenciaDAO.getAllSumarizedByUserId(usuarioId);
+	    Map<String, Double> ingresosTotales = categoriaIngresoDAO.getAllSumarizedByUserId(usuarioId,fechaInicioTimestamp,fechaFinTimestamp);
+	    Map<String, Double> totalEgresos = categoriaEgresoDAO.getAllSumarizedByUserId(usuarioId,fechaInicioTimestamp,fechaFinTimestamp);
+	    Map<String, Double> transferenciasTotales = categoriaTransferenciaDAO.getAllSumarizedByUserId(usuarioId,fechaInicioTimestamp,fechaFinTimestamp);
 
 
 	    for (Categoria categoria : categorias) {
@@ -171,14 +239,32 @@ public class ContabilidadController extends HttpServlet {
 	public void mostrarCuenta(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	    // Obtener el identificador de la cuenta desde la solicitud
 		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
+		HttpSession session = req.getSession();
+
+	    // Obtener fechas desde la sesión
+	    String fechaInicioStr = (String) session.getAttribute("fechaInicio");
+	    String fechaFinStr = (String) session.getAttribute("fechaFin");
+
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+	    LocalDateTime fechaInicio = fechaInicioStr != null && !fechaInicioStr.isEmpty() ?
+	        LocalDateTime.parse(fechaInicioStr, formatter) :
+	        LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+	    LocalDateTime fechaFin = fechaFinStr != null && !fechaFinStr.isEmpty() ?
+	        LocalDateTime.parse(fechaFinStr, formatter) :
+	        LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+
+	    // Convertir a Timestamp para su uso en la base de datos
+	    Timestamp fechaInicioTimestamp = Timestamp.valueOf(fechaInicio);
+	    Timestamp fechaFinTimestamp = Timestamp.valueOf(fechaFin);
+
 
 	    
 	    // Obtener la cuenta y sus movimientos desde el DAO
 	    Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
 	    
-	    List<Movimiento> movimientosEgreso =  egresoDAO.getMovimientosByCuenta(cuenta);
-		List<Movimiento> movimientosIngreso = ingresoDAO.getMovimientosByCuenta(cuenta);
-		List<Movimiento> movimientosTransferencia = transferenciaDAO.getMovimientosByCuenta(cuenta);
+	    List<Movimiento> movimientosEgreso =  egresoDAO.getMovimientosByCuenta(cuenta, fechaInicioTimestamp, fechaFinTimestamp);
+		List<Movimiento> movimientosIngreso = ingresoDAO.getMovimientosByCuenta(cuenta, fechaInicioTimestamp, fechaFinTimestamp);
+		List<Movimiento> movimientosTransferencia = transferenciaDAO.getMovimientosByCuenta(cuenta, fechaInicioTimestamp, fechaFinTimestamp);
 	    
 	    
 		List<Movimiento> movimientos = new ArrayList<>();
@@ -202,7 +288,28 @@ public class ContabilidadController extends HttpServlet {
 	
 	public void mostrarCategoria(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	
-		 int categoriaId = Integer.parseInt(req.getParameter("categoriaId"));
+		int usuarioId =(int) req.getSession().getAttribute("usuarioId"); 
+	    int categoriaId = Integer.parseInt(req.getParameter("categoriaId"));
+	    
+	    HttpSession session = req.getSession();
+
+	    // Obtener fechas desde la sesión
+	    String fechaInicioStr = (String) session.getAttribute("fechaInicio");
+	    String fechaFinStr = (String) session.getAttribute("fechaFin");
+
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+	    LocalDateTime fechaInicio = fechaInicioStr != null && !fechaInicioStr.isEmpty() ?
+	        LocalDateTime.parse(fechaInicioStr, formatter) :
+	        LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+	    LocalDateTime fechaFin = fechaFinStr != null && !fechaFinStr.isEmpty() ?
+	        LocalDateTime.parse(fechaFinStr, formatter) :
+	        LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+
+	    // Convertir a Timestamp para su uso en la base de datos
+	    Timestamp fechaInicioTimestamp = Timestamp.valueOf(fechaInicio);
+	    Timestamp fechaFinTimestamp = Timestamp.valueOf(fechaFin);
+	    
+
 		 Categoria categoria = categoriaDAO.findCategoriaById(categoriaId);
 		 //List<Movimiento> movimientos;
 		 List<Movimiento> movimientosEgreso = null;
@@ -212,23 +319,24 @@ public class ContabilidadController extends HttpServlet {
 		 List<MovimientoDTO> movimientosDTO = null;
 		    if (categoria instanceof CategoriaIngreso) {
 		        
-		    	movimientosIngreso = ingresoDAO.findMovimientosByCategoriaIngreso(categoria);
+		    	movimientosIngreso = ingresoDAO.findMovimientosByCategoriaIngreso(categoriaId,usuarioId, fechaInicioTimestamp,fechaFinTimestamp);
+		    	System.out.println("Hola" + categoriaId + "" + usuarioId);
 		    	movimientosDTO = movimientoDAO.getAllMovementsDTO(movimientosIngreso);
-		    	total = categoriaIngresoDAO.getSumByCategory(categoriaId);
+		    	total = categoriaIngresoDAO.getSumByUserIdAndCategory(usuarioId, categoriaId , fechaInicioTimestamp,fechaFinTimestamp);
 		    	req.setAttribute("movimientos", movimientosDTO);
 		    } else if (categoria instanceof CategoriaEgreso) {
-		    	movimientosEgreso = egresoDAO.findMovimientosByCategoriaEgreso(categoria);
+		    	movimientosEgreso = egresoDAO.findMovimientosByCategoriaEgreso(categoriaId, usuarioId , fechaInicioTimestamp,fechaFinTimestamp);
 		    	movimientosDTO = movimientoDAO.getAllMovementsDTO(movimientosEgreso);
 		    	
 		    	
-		    	total = categoriaEgresoDAO.getSumByCategory(categoriaId);
+		    	total = categoriaEgresoDAO.getSumByUserIdAndCategory(usuarioId,categoriaId, fechaInicioTimestamp,fechaFinTimestamp);
 		    	
 		    	req.setAttribute("movimientos", movimientosDTO);
 		    	
 		    } else if (categoria instanceof CategoriaTransferencia) {
-		    	movimientosTransferencia = transferenciaDAO.findMovimientosByCategoriaTransferencia(categoria);
+		    	movimientosTransferencia = transferenciaDAO.findMovimientosByCategoriaTransferencia(categoriaId,usuarioId , fechaInicioTimestamp,fechaFinTimestamp);
 		    	movimientosDTO = movimientoDAO.getAllMovementsDTO(movimientosTransferencia);
-		        total = categoriaTransferenciaDAO.getSumByCategory(categoriaId);
+		        total = categoriaTransferenciaDAO.getSumByUserIdAndCategory(usuarioId,categoriaId, fechaInicioTimestamp,fechaFinTimestamp);
 		        req.setAttribute("movimientos", movimientosDTO);
 		    }
 		    
@@ -279,17 +387,8 @@ public class ContabilidadController extends HttpServlet {
         Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
         Categoria categoria  = categoriaEgresoDAO.getCategoriaById(categoriaId);
         
-        Timestamp fecha = null;
+        Timestamp fecha = convertirFecha(fechaStr,resp);
 
-	    try {
-	    	fechaStr = fechaStr.replace("T", " "); // Reemplazar 'T' con un espacio para el formato correcto
-	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	        fecha = new Timestamp(dateFormat.parse(fechaStr).getTime()); // Convertir la fecha del formulario a un objeto Date
-	    } catch (ParseException e) {
-	        // Manejo de error si la fecha no es válida
-	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
-	        return;
-	    }
 	    monto = -monto;
 	    cuentaDAO.actualizarSaldo(cuentaId, monto);
 	    //movimiento
@@ -312,21 +411,8 @@ public class ContabilidadController extends HttpServlet {
         Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
         
         Categoria categoria = categoriaIngresoDAO.getCategoriaById(categoriaId);
-        
-        
-        
-        
-        Timestamp fecha = null;
 
-	    try {
-	    	fechaStr = fechaStr.replace("T", " "); // Reemplazar 'T' con un espacio para el formato correcto
-	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	        fecha = new Timestamp(dateFormat.parse(fechaStr).getTime()); // Convertir la fecha del formulario a un objeto Date
-	    } catch (ParseException e) {
-	        // Manejo de error si la fecha no es válida
-	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
-	        return;
-	    }
+        Timestamp fecha = convertirFecha(fechaStr,resp);
 	    cuentaDAO.actualizarSaldo(cuentaId, monto);
 	    Ingreso nuevoIngreso =  new Ingreso(0,concepto,fecha,monto,(CategoriaIngreso) categoria,cuenta);
 	    ingresoDAO.createIngreso(nuevoIngreso);
@@ -379,17 +465,9 @@ public class ContabilidadController extends HttpServlet {
         
         Categoria categoria  = categoriaTransferenciaDAO.getCategoriaById(categoriaId);
         
-        Timestamp fecha = null;
+        Timestamp fecha = convertirFecha(fechaStr,resp);
 
-	    try {
-	    	fechaStr = fechaStr.replace("T", " "); // Reemplazar 'T' con un espacio para el formato correcto
-	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	        fecha = new Timestamp(dateFormat.parse(fechaStr).getTime()); // Convertir la fecha del formulario a un objeto Date
-	    } catch (ParseException e) {
-	        // Manejo de error si la fecha no es válida
-	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
-	        return;
-	    }
+	 
 
 	    cuentaDAO.actualizarSaldo(cuentaOrigenId, -monto);
 	    cuentaDAO.actualizarSaldo(cuentaDestinoId, monto);
@@ -400,8 +478,6 @@ public class ContabilidadController extends HttpServlet {
 	    														//int idMovimiento, String concepto, Date fecha, double valor, CategoriaTransferencia categoriaTransferencia,  Cuenta origenCuenta, Cuenta destinoCuenta
 	    transferenciaDAO.createTransferencia(nuevaTransferencia);
 	    
-	    //Ingreso nuevoIngreso = new Ingreso(0,concepto,fecha,monto,(CategoriaIngreso) categoria,cuentaDestino);
-        //ingresoDAO.createIngreso(nuevoIngreso);
         
         resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaOrigenId + "&mensaje=Transferencia registrada exitosamente");
 		
@@ -512,10 +588,11 @@ public class ContabilidadController extends HttpServlet {
 		
 		 String redireccionURL = "ContabilidadController?ruta=mostrardashboard"; // Valor por defecto
 
-		    if ("verCuenta".equals(vistaOrigen)) {
-		        redireccionURL = "ContabilidadController?ruta=verCuenta&idCuenta=" + req.getParameter("idCuenta");
-		    } else if ("verCategoria".equals(vistaOrigen)) {
-		        redireccionURL = "ContabilidadController?ruta=verCategoria&idCategoria=" + req.getParameter("idCategoria");
+		    if ("mostrarCuenta".equals(vistaOrigen)) {
+		        redireccionURL = "ContabilidadController?ruta=mostrarCuenta&cuentaId=" + Integer.parseInt(req.getParameter("idCuenta"));
+		    } else if ("mostrarCategoria".equals(vistaOrigen)) {
+		    	System.out.println(req.getParameter("idCategoria"));
+		        redireccionURL = "ContabilidadController?ruta=mostrarCategoria&categoriaId=" + Integer.parseInt(req.getParameter("idCategoria"));
 		    }
 		    
 		    resp.sendRedirect(redireccionURL);
@@ -525,22 +602,33 @@ public class ContabilidadController extends HttpServlet {
 		int  idMovimiento = Integer.parseInt(req.getParameter("idMovimiento"));
 		Movimiento movimiento = movimientoDAO.findMovimientoById(idMovimiento);
 		 int usuarioId = (int) req.getSession().getAttribute("usuarioId");
-		List<Cuenta> cuentasDestino = cuentaDAO.getAllAccountsByUserId(usuarioId);
-	    List<Categoria> categorias = categoriaDAO.findAllByUserId(usuarioId);
-	    
+		
+		 List<Categoria> categorias = null;
+		 List<Cuenta> cuentas = cuentaDAO.getAllAccountsByUserId(usuarioId);
 	    // Agregar los datos a la solicitud
-	    req.setAttribute("movimiento", movimiento);
-	    req.setAttribute("cuentasDestino", cuentasDestino);
-	    req.setAttribute("categorias", categorias);
+	   
 	    if (movimiento instanceof Transferencia) {
-	        req.setAttribute("esTransferencia", true);
+	    	
+	    	categorias = categoriaTransferenciaDAO.getCategoriasTransferencia();
+	    	req.setAttribute("movimiento", movimiento);
+		    req.setAttribute("categoria", categorias);
+		    req.setAttribute("cuenta", cuentas);
+	    	req.getRequestDispatcher("jsp/actualizarMovimientoTransferencia.jsp").forward(req, resp);
 	    } else if (movimiento instanceof Ingreso) {
-	        req.setAttribute("esIngreso", true);
+	    	categorias = categoriaIngresoDAO.getCategoriasIngreso();
+	    	req.setAttribute("movimiento", movimiento);
+		    req.setAttribute("categoria", categorias);
+		    req.setAttribute("cuenta", cuentas);
+	    	req.getRequestDispatcher("jsp/actualizarMovimientoIngreso.jsp").forward(req, resp);
 	    } else if (movimiento instanceof Egreso) {
-	        req.setAttribute("esEgreso", true);
+	    	categorias = categoriaEgresoDAO.getCategoriasEgreso();
+	    	req.setAttribute("movimiento", movimiento);
+		    req.setAttribute("categoria", categorias);
+		    req.setAttribute("cuenta", cuentas);
+	    	req.getRequestDispatcher("jsp/actualizarMovimientoEgreso.jsp").forward(req, resp);
 	    }
+	    ;
 	    
-	    req.getRequestDispatcher("jsp/actualizarMovimiento.jsp").forward(req, resp);
 	}
 	public void actualizarMovimiento(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -640,11 +728,28 @@ public class ContabilidadController extends HttpServlet {
 	
 	
 	/*Posterior*/
-	 public static Date getPrimerDiaDelMes() {
-	        return new GregorianCalendar(2024, GregorianCalendar.JULY, 1).getTime();
+	
+	public Timestamp convertirFecha(String fechaStr, HttpServletResponse resp) throws IOException {
+	    if (fechaStr == null || fechaStr.trim().isEmpty()) {
+	        // Manejo de error si la fecha es nula o vacía
+	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha no proporcionada");
+	        return null;
 	    }
 
-	    public static Date getUltimoDiaDelMes() {
-	        return new GregorianCalendar(2024, GregorianCalendar.JULY, 31).getTime();
+	    Timestamp fecha = null;
+	    try {
+	        fechaStr = fechaStr.replace("T", " "); // Reemplazar 'T' con un espacio para el formato correcto
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	        dateFormat.setLenient(false); // Asegurarse de que el análisis sea estricto
+	        Date parsedDate = dateFormat.parse(fechaStr);
+	        fecha = new Timestamp(parsedDate.getTime()); // Convertir la fecha del formulario a un objeto Timestamp
+	    } catch (ParseException e) {
+	        // Manejo de error si la fecha no es válida
+	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
+	        return null;
 	    }
+
+	    return fecha;
+	}
+	
 }

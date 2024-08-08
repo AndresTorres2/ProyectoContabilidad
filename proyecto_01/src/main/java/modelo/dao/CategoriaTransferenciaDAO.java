@@ -1,5 +1,6 @@
 package modelo.dao;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,22 +59,31 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
 	    }
 	}
 	
-	public double getSumByCategory(int categoriaId) {
+	public Double getSumByUserIdAndCategory(int usuarioId, int categoriaId, Timestamp fechaInicio, Timestamp fechaFin) {
 	    try {
-	        // SQL query para obtener la suma para una categoría específica
-	        String sql = "SELECT COALESCE(SUM(m.monto), 0) FROM Movimiento m JOIN Categoria c ON m.categoria = c.IDCATEGORIA WHERE c.IDCATEGORIA = ?1 AND c.categoria_type = 'C_TRANSFERENCIA'";
-	        
+	        // SQL query para obtener la suma total de movimientos filtrados por idUsuario y idCategoria
+	        String sql = "SELECT COALESCE(SUM(m.monto), 0.0) AS total_transferencia "
+	                   + "FROM movimiento m "
+	                   + "LEFT JOIN cuenta cu ON m.origen = cu.idCuenta "
+	                   + "WHERE cu.propietario = ?1 AND m.categoria = ?2 "
+	                   + "AND m.fecha BETWEEN ?3 AND ?4 ;";
+
 	        // Crear la consulta nativa
 	        Query query = em.createNativeQuery(sql);
-	        query.setParameter(1, categoriaId);
+	        query.setParameter(1, usuarioId); // Establecer el parámetro del id del usuario
+	        query.setParameter(2, categoriaId);
+	        query.setParameter(3, fechaInicio); // Establecer el parámetro de la fecha de inicio
+	        query.setParameter(4, fechaFin);// Establecer el parámetro del id de la categoría
 	        
 	        // Ejecutar la consulta y obtener el resultado
-	        Double result = (Double) query.getSingleResult();
-	        return result != null ? result : 0.0;
-	        
+	        Double totalIngreso = ((Number) query.getSingleResult()).doubleValue();
+	        System.out.println("das"  + usuarioId + "cate" + categoriaId );
+
+	        return totalIngreso;
+
 	    } catch (Exception e) {
 	        e.printStackTrace(); // Registrar o manejar otras excepciones
-	        return 0.0; // Retornar 0 en caso de error
+	        return 0.0; // Retornar 0.0 en caso de error
 	    }
 	}
 	
@@ -84,7 +94,7 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
     }
 	
 	
-	public Map<String, Double> getAllSumarizedByUserId(int usuarioId) {
+	public Map<String, Double> getAllSumarizedByUserId(int usuarioId, Timestamp fechaInicio, Timestamp fechaFin) {
 	    try {
 	        // SQL query para obtener la suma agrupada por nombre de categoría,
 	        // asegurando que todas las categorías sean incluidas incluso si no tienen movimientos
@@ -95,6 +105,7 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
 	        		+ "    SELECT m.*, cu.propietario "
 	        		+ "    FROM movimiento m "
 	        		+ "    LEFT JOIN cuenta cu ON m.origen = cu.idCuenta "
+	        		+ "    WHERE m.fecha BETWEEN ? AND ? "
 	        		+ ") m ON c.IDCATEGORIA = m.categoria AND m.propietario = ? "
 	        		+ "WHERE c.categoria_type = 'C_TRANSFERENCIA' "
 	        		+ "GROUP BY c.nombre;";
@@ -102,7 +113,9 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
 	        
 	        // Crear la consulta nativa
 	        Query query = em.createNativeQuery(sql);
-	        query.setParameter(1, usuarioId); // Establecer el parámetro del id del usuario
+	        query.setParameter(1, fechaInicio); // Establecer el parámetro de la fecha de inicio
+	        query.setParameter(2, fechaFin); // Establecer el parámetro de la fecha de fin
+	        query.setParameter(3, usuarioId);  // Establecer el parámetro del id del usuario
 	        
 	        // Ejecutar la consulta y obtener los resultados
 	        List<Object[]> results = query.getResultList();

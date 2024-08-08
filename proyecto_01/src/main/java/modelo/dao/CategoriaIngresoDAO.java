@@ -1,5 +1,6 @@
 package modelo.dao;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,24 +59,7 @@ public class CategoriaIngresoDAO extends CategoriaDAO {
 	}
 	
 	
-	public double getSumByCategory(int categoriaId) {
-	    try {
-	        // SQL query para obtener la suma para una categoría específica
-	        String sql = "SELECT COALESCE(SUM(m.monto), 0) FROM Movimiento m JOIN Categoria c ON m.categoria = c.IDCATEGORIA WHERE c.IDCATEGORIA = ?1 AND c.categoria_type = 'C_INGRESO'";
-	        
-	        // Crear la consulta nativa
-	        Query query = em.createNativeQuery(sql);
-	        query.setParameter(1, categoriaId);
-	        
-	        // Ejecutar la consulta y obtener el resultado
-	        Double result = (Double) query.getSingleResult();
-	        return result != null ? result : 0.0;
-	        
-	    } catch (Exception e) {
-	        e.printStackTrace(); // Registrar o manejar otras excepciones
-	        return 0.0; // Retornar 0 en caso de error
-	    }
-	}
+
 	
 	public List<Categoria> getCategoriasIngreso() {
         String jpql = "SELECT c FROM CategoriaIngreso c";
@@ -84,7 +68,7 @@ public class CategoriaIngresoDAO extends CategoriaDAO {
     }
 	
 	
-	public Map<String, Double> getAllSumarizedByUserId(int usuarioId) {
+	public Map<String, Double> getAllSumarizedByUserId(int usuarioId, Timestamp fechaInicio, Timestamp fechaFin) {
 	    try {
 	        // SQL query para obtener la suma agrupada por nombre de categoría,
 	        // asegurando que todas las categorías sean incluidas incluso si no tienen movimientos
@@ -95,6 +79,7 @@ public class CategoriaIngresoDAO extends CategoriaDAO {
 	        		+ "    SELECT m.*, cu.propietario "
 	        		+ "    FROM movimiento m "
 	        		+ "    LEFT JOIN cuenta cu ON m.destino = cu.idCuenta "
+	        		+ "    WHERE m.fecha BETWEEN ? AND ?"
 	        		+ ") m ON c.IDCATEGORIA = m.categoria AND m.propietario = ? "
 	        		+ "WHERE c.categoria_type = 'C_INGRESO' "
 	        		+ "GROUP BY c.nombre;";
@@ -102,7 +87,9 @@ public class CategoriaIngresoDAO extends CategoriaDAO {
 	        
 	        // Crear la consulta nativa
 	        Query query = em.createNativeQuery(sql);
-	        query.setParameter(1, usuarioId); // Establecer el parámetro del id del usuario
+	        query.setParameter(1, fechaInicio); // Establecer el parámetro de la fecha de inicio
+	        query.setParameter(2, fechaFin); // Establecer el parámetro de la fecha de fin
+	        query.setParameter(3, usuarioId); // Establecer el parámetro del id del usuario
 	        
 	        // Ejecutar la consulta y obtener los resultados
 	        List<Object[]> results = query.getResultList();
@@ -130,6 +117,47 @@ public class CategoriaIngresoDAO extends CategoriaDAO {
 
 
 
+	
+	
+	
+	
+	
+	public Double getSumByUserIdAndCategory(int usuarioId, int categoriaId, Timestamp fechaInicio, Timestamp fechaFin) {
+		 try {
+		        // SQL query para obtener la suma total de movimientos filtrados por idUsuario, idCategoria y rango de fechas
+		        String sql = "SELECT COALESCE(SUM(m.monto), 0.0) AS total_ingreso "
+		                   + "FROM movimiento m "
+		                   + "LEFT JOIN cuenta cu ON m.destino = cu.idCuenta "
+		                   + "WHERE cu.propietario = ?1 "
+		                   + "AND m.categoria = ?2 "
+		                   + "AND m.fecha BETWEEN ?3 AND ?4";
+
+		        // Crear la consulta nativa
+		        Query query = em.createNativeQuery(sql);
+		        query.setParameter(1, usuarioId); // Establecer el parámetro del id del usuario
+		        query.setParameter(2, categoriaId); // Establecer el parámetro del id de la categoría
+		        query.setParameter(3, fechaInicio); // Establecer el parámetro de la fecha de inicio
+		        query.setParameter(4, fechaFin); // Establecer el parámetro de la fecha de fin
+
+		        // Ejecutar la consulta y obtener el resultado
+		        Double totalIngreso = ((Number) query.getSingleResult()).doubleValue();
+
+		        return totalIngreso;
+
+		    } catch (Exception e) {
+		        e.printStackTrace(); // Registrar o manejar otras excepciones
+		        return 0.0; // Retornar 0.0 en caso de error
+		    }
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 }
