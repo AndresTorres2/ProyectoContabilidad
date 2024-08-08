@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
 import modelo.entidades.Cuenta;
 
 public class CuentaDAO  {
@@ -25,7 +26,13 @@ public class CuentaDAO  {
         em.getTransaction().commit();
     }
 	
-	
+	public List<Cuenta> getAllAccountsByUserId(int usuarioId) {
+	    String sql = "SELECT * FROM Cuenta WHERE propietario = ?";
+	    Query query = em.createNativeQuery(sql, Cuenta.class);
+	    query.setParameter(1, usuarioId);
+	    return query.getResultList();
+	}
+
 	
 	public  List<Cuenta> getAllAccounts() {
 		return em.createQuery("SELECT c FROM Cuenta c", Cuenta.class).getResultList();
@@ -63,6 +70,35 @@ public class CuentaDAO  {
         }
     }
 	
+	
+	public void delete(int idCuenta) {
+		
+		EntityTransaction transaction = em.getTransaction();
+
+        try {
+            transaction.begin();
+
+            // Buscar la cuenta por su ID
+            Cuenta cuenta = em.find(Cuenta.class, idCuenta);
+            
+            if (cuenta != null) {
+                // Eliminar la cuenta
+                em.remove(cuenta);
+            } else {
+                throw new IllegalArgumentException("Cuenta con ID " + idCuenta + " no encontrada.");
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw new RuntimeException("Error al eliminar la cuenta", e);
+        } finally {
+            em.close();
+        }
+		
+	}
 	
 	
 	

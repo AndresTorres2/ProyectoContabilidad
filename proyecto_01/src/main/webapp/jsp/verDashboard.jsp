@@ -22,6 +22,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCuenta&cuentaId=${cuenta.idCuenta}">${cuenta.nombreCuenta}</a> </td>
                     <td>${cuenta.total}</td>
+                    <td><a href="#" class="eliminarCuenta" data-id="${cuenta.idCuenta}" data-nombre="${cuenta.nombreCuenta}"> Eliminar</a> </td>
                 </tr>
             </c:forEach>
         </tbody>
@@ -40,6 +41,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria}</a> </td>
                     <td>${totalIngresos[categoria.nombreCategoria]}</td> 
+                    <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
                 </tr>
             </c:forEach>
         </tbody>
@@ -58,6 +60,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria} </a> </td>
                     <td>${totalEgresos[categoria.nombreCategoria]}</td> 
+                    <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
                 </tr>
             </c:forEach>
         </tbody>
@@ -76,6 +79,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria}</a> </td>
                     <td>${totalTransferencias[categoria.nombreCategoria]}</td> 
+                    <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
                 </tr>
             </c:forEach>
         </tbody>
@@ -102,11 +106,95 @@
                     <td>${movimiento.origen}</td>
                     <td>${movimiento.destino}</td>
                     <td>${movimiento.categoria}</td>
+                    <td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar</a> </td>
+                     <td> <a href="#" class="eliminarMovimiento" data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
                 </tr>
             </c:forEach>
         </tbody>
     </table>
     <br><br>
-    <a href="ContabilidadController?ruta=mostrarFormularioCuenta&idUsuario=${usuario.idUsuario}" >Crear Cuenta(En Construcción)</a>
+    <a href="ContabilidadController?ruta=mostrarFormularioCuenta" >Crear Cuenta(Falta controlar borrado en cascada)</a>
+    <br><br>
+    <a href="ContabilidadController?ruta=mostrarFormularioCategoria" >Crear Categoria</a>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".eliminarCuenta").forEach(function(eliminarLink) {
+            eliminarLink.addEventListener("click", function(event) {
+                event.preventDefault();
+                
+                var idCuenta = this.getAttribute("data-id");
+                var nombreCuenta = this.getAttribute("data-nombre");
+               
+                
+                var confirmacion = confirm("¿Desea eliminar esta cuenta: " + nombreCuenta + "?");
+                
+                if (confirmacion) {
+                    // Redirige al controlador para eliminar la cuenta
+                    window.location.href = "ContabilidadController?ruta=eliminarCuenta&idCuenta=" + idCuenta ;
+                }
+            });
+        });
+    });
+    
+    
+    
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".eliminarCategoria").forEach(function(eliminarLink) {
+            eliminarLink.addEventListener("click", function(event) {
+                event.preventDefault();
+                
+                var idCategoria = this.getAttribute("data-id");
+                var nombreCategoria = this.getAttribute("data-nombre");
+                
+                var confirmacion = confirm("¿Desea eliminar esta categoría: " + nombreCategoria + "?");
+                
+                if (confirmacion) {
+                    // Redirige al controlador para eliminar la categoría
+                    window.location.href = "ContabilidadController?ruta=eliminarCategoria&idCategoria=" + idCategoria;
+                }
+            });
+        });
+    });
+    
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".eliminarMovimiento").forEach(function(eliminarLink) {
+            eliminarLink.addEventListener("click", function(event) {
+                event.preventDefault();
+                
+                var idMovimiento = this.getAttribute("data-id");
+                var conceptoMovimiento = this.getAttribute("data-nombre");
+                var origen = "verDashboard";
+                
+                var confirmacion = confirm("¿Desea eliminar este movimiento: " + conceptoMovimiento + "?");
+                
+                if (confirmacion) {
+                    // Redirige al controlador para eliminar la categoría
+                    window.location.href = "ContabilidadController?ruta=eliminarMovimiento&idMovimiento=" + idMovimiento + "&vistaOrigen=" + encodeURIComponent(origen);
+                }
+            });
+        });
+    });
+    
+    
+</script>
+    
+    
+    
+    
+    
 </body>
 </html>

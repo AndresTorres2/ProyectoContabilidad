@@ -16,6 +16,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import modelo.entidades.Categoria;
 import modelo.entidades.CategoriaEgreso;
 import modelo.entidades.CategoriaIngreso;
@@ -87,33 +88,60 @@ public class ContabilidadController extends HttpServlet {
 		 *2.- Hablar con el modelo
 		 *3.- Llamar a la vista
 		 */
-		
 		resp.sendRedirect("jsp/login.jsp");
 	}
 	public void ingresar(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
-		//resp.sendRedirect("ContabilidadController?ruta=mostrarFormulario");
-		//resp.sendRedirect("jsp/createCategoria.jsp");
+		
+	    String username = req.getParameter("usuario");
+	    String password = req.getParameter("clave");
+	    
+	
+	    Usuario usuario = usuarioDAO.authenticate(username, password);
+
+	  
+	    if (usuario != null) {
+	    	HttpSession session = req.getSession(true);
+	    	req.getSession().setAttribute("usuarioId", usuario.getIdUsuario()); 
+	    	session.setMaxInactiveInterval(30 * 60);
+	        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
+	        
+	    } else {
+	        // Si la autenticación falla, redirigir a la página de inicio de sesión con un mensaje de error
+	        req.getSession().setAttribute("errorMessage", "Nombre de usuario o contraseña incorrectos");
+	        resp.sendRedirect("jsp/login.jsp"); 
+	    }
 		
 		
+	}
+	public void mostrarFormularioUsuario(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		resp.sendRedirect("jsp/createUsuario.jsp");
+	}
+	public void createUsuario(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String nombre =  req.getParameter("nombre");
+		String clave =  req.getParameter("clave");
+		Usuario usuario  =  new Usuario(0,nombre,clave);
+		usuarioDAO.create(usuario);
+		resp.sendRedirect("ContabilidadController?ruta=iniciar");
 	}
 	
 	
 	public void mostrarDashboard(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
-		List<Cuenta> cuentas = cuentaDAO.getAllAccounts();
+		int usuarioId =(int) req.getSession().getAttribute("usuarioId"); 
+		
+		List<Cuenta> cuentas = cuentaDAO.getAllAccountsByUserId(usuarioId);
 		List<Categoria> categorias = categoriaDAO.findAll();
 		    
 		List<CategoriaIngreso> ingresos = new ArrayList<>();
 	    List<CategoriaEgreso> egresos = new ArrayList<>();
 	    List<CategoriaTransferencia> transferencias = new ArrayList<>();
 	    
-	    List<Movimiento> movimientos = movimientoDAO.getAllMovements(); 
+	    List<Movimiento> movimientos = movimientoDAO.getAllMovementsByUserId(usuarioId);
 	    List<MovimientoDTO> movimientosDTO = movimientoDAO.getAllMovementsDTO(movimientos);
 	    
-	    Map<String, Double> ingresosTotales = categoriaIngresoDAO.getAllSumarized();
-	    Map<String, Double> totalEgresos = categoriaEgresoDAO.getAllSumarized();
-	    Map<String, Double> transferenciasTotales = categoriaTransferenciaDAO.getAllSumarized();
+	    Map<String, Double> ingresosTotales = categoriaIngresoDAO.getAllSumarizedByUserId(usuarioId);
+	    Map<String, Double> totalEgresos = categoriaEgresoDAO.getAllSumarizedByUserId(usuarioId);
+	    Map<String, Double> transferenciasTotales = categoriaTransferenciaDAO.getAllSumarizedByUserId(usuarioId);
 
 
 	    for (Categoria categoria : categorias) {
@@ -311,12 +339,12 @@ public class ContabilidadController extends HttpServlet {
 	
 	public void registrarTransferenciaForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
-	    
+		int usuarioId =(int) req.getSession().getAttribute("usuarioId"); 
 	    // Obtener la cuenta de origen
 	    Cuenta cuentaOrigen = cuentaDAO.getCuentaById(cuentaId);
 	    
 	    // Obtener todas las cuentas excepto la cuenta de origen
-	    List<Cuenta> todasCuentas = cuentaDAO.getAllAccounts();
+	    List<Cuenta> todasCuentas = cuentaDAO.getAllAccountsByUserId(usuarioId);
 	    List<Cuenta> cuentasDestino = todasCuentas.stream()
 	        .filter(cuenta -> cuenta.getIdCuenta() != cuentaId)
 	        .collect(Collectors.toList());
@@ -362,9 +390,8 @@ public class ContabilidadController extends HttpServlet {
 	        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fecha inválida");
 	        return;
 	    }
-	    monto = -monto;
-	    cuentaDAO.actualizarSaldo(cuentaOrigenId, monto);
-	    monto = -monto;
+
+	    cuentaDAO.actualizarSaldo(cuentaOrigenId, -monto);
 	    cuentaDAO.actualizarSaldo(cuentaDestinoId, monto);
         
         
@@ -383,8 +410,9 @@ public class ContabilidadController extends HttpServlet {
 	//**//
 	public void mostrarFormularioCuenta(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
-		int usuarioId = Integer.parseInt(req.getParameter("idUsuario"));
+		int usuarioId = (int) req.getSession().getAttribute("usuarioId");
 	    Usuario usuario = usuarioDAO.findUsuarioById(usuarioId); // Asegúrate de tener un método para obtener un usuario por ID
+	    //int usuarioId =(int) req.getSession().getAttribute("usuarioId");
 	    
 	    req.setAttribute("usuario", usuario);
 		req.getRequestDispatcher("jsp/createCuenta.jsp").forward(req, resp);
@@ -393,19 +421,34 @@ public class ContabilidadController extends HttpServlet {
 	public void createCuenta(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String nombre = req.getParameter("nombreCuenta");
         double saldo = Double.parseDouble(req.getParameter("saldo"));
-        int usuarioId = Integer.parseInt(req.getParameter("idUsuario"));
+        int usuarioId = (int) req.getSession().getAttribute("usuarioId");
         Usuario usuario = usuarioDAO.findUsuarioById(usuarioId);
         
-        Cuenta cuenta = new Cuenta();
-
-        cuenta.setNombreCuenta(nombre);
-        cuenta.setTotal(saldo);
-        cuenta.setUsuario(usuario);
+        Cuenta cuenta = new Cuenta(0,nombre,saldo,usuario);
 
         cuentaDAO.createCuenta(cuenta);
         resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
         //resp.sendRedirect("jsp/createCategoria.jsp");
     }
+	
+	public void eliminarCuenta(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		 String idCuentaParam = req.getParameter("idCuenta");
+		    
+		    if (idCuentaParam != null) {
+		        int idCuenta = Integer.parseInt(idCuentaParam);
+		        CuentaDAO cuentaDAO = new CuentaDAO();
+		        cuentaDAO.delete(idCuenta);
+		        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
+		    } else {
+		        // Manejo de error si no se proporciona el idCuenta
+		        req.getSession().setAttribute("errorMessage", "ID de cuenta no proporcionado.");
+		        resp.sendRedirect("jsp/error.jsp");
+		    }
+	}
+	
+	public void mostrarFormularioCategoria(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.getRequestDispatcher("jsp/createCategoria.jsp").forward(req, resp);
+	}
 	
 	public void crearCategoria(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	    String tipoCategoria = req.getParameter("tipoCategoria");
@@ -432,9 +475,76 @@ public class ContabilidadController extends HttpServlet {
 	        // Manejo de error
 	    }
 	}
-
-
+	public void eliminarCategoria(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	
+		int idCategoria = Integer.parseInt(req.getParameter("idCategoria"));
+		categoriaDAO.eliminarCategoria(idCategoria);
+		resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
+		
+	}
+	
+	public void eliminarMovimiento(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		int idMovimiento =  Integer.parseInt(req.getParameter("idMovimiento"));
+		String vistaOrigen = req.getParameter("vistaOrigen");
+		
+		Movimiento movimiento =  movimientoDAO.findMovimientoById(idMovimiento);
+		
+		
+		
+		movimientoDAO.deleteMovimiento(idMovimiento);
+		if (movimiento instanceof Egreso) {
+			 Egreso egreso = (Egreso) movimiento;
+	        // Para un Egreso, el monto debe ser restado
+	        cuentaDAO.actualizarSaldo(egreso.getOrigen().getIdCuenta(),-egreso.getMonto());
+	    } else if (movimiento instanceof Ingreso) {
+	    	Ingreso ingreso = (Ingreso) movimiento;
+	        // Para un Ingreso, el monto debe ser sumado
+	    	cuentaDAO.actualizarSaldo(ingreso.getDestino().getIdCuenta(),-ingreso.getMonto());
+	    } else if (movimiento instanceof Transferencia) {
+	        Transferencia transferencia = (Transferencia) movimiento;
+	        // Para una Transferencia, ajustar dos cuentas
+	        cuentaDAO.actualizarSaldo(transferencia.getOrigen().getIdCuenta(), transferencia.getMonto());
+	        cuentaDAO.actualizarSaldo(transferencia.getDestino().getIdCuenta(),-transferencia.getMonto());
+	    }
+		
+		
+		
+		
+		 String redireccionURL = "ContabilidadController?ruta=mostrardashboard"; // Valor por defecto
+
+		    if ("verCuenta".equals(vistaOrigen)) {
+		        redireccionURL = "ContabilidadController?ruta=verCuenta&idCuenta=" + req.getParameter("idCuenta");
+		    } else if ("verCategoria".equals(vistaOrigen)) {
+		        redireccionURL = "ContabilidadController?ruta=verCategoria&idCategoria=" + req.getParameter("idCategoria");
+		    }
+		    
+		    resp.sendRedirect(redireccionURL);
+	}
+	public void formActualizarMovimiento(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+		int  idMovimiento = Integer.parseInt(req.getParameter("idMovimiento"));
+		Movimiento movimiento = movimientoDAO.findMovimientoById(idMovimiento);
+		 int usuarioId = (int) req.getSession().getAttribute("usuarioId");
+		List<Cuenta> cuentasDestino = cuentaDAO.getAllAccountsByUserId(usuarioId);
+	    List<Categoria> categorias = categoriaDAO.findAllByUserId(usuarioId);
+	    
+	    // Agregar los datos a la solicitud
+	    req.setAttribute("movimiento", movimiento);
+	    req.setAttribute("cuentasDestino", cuentasDestino);
+	    req.setAttribute("categorias", categorias);
+	    if (movimiento instanceof Transferencia) {
+	        req.setAttribute("esTransferencia", true);
+	    } else if (movimiento instanceof Ingreso) {
+	        req.setAttribute("esIngreso", true);
+	    } else if (movimiento instanceof Egreso) {
+	        req.setAttribute("esEgreso", true);
+	    }
+	    
+	    req.getRequestDispatcher("jsp/actualizarMovimiento.jsp").forward(req, resp);
+	}
+	public void actualizarMovimiento(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+	}
 
 	private void ruteador(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String ruta = (req.getParameter("ruta") == null)? "iniciar": req.getParameter("ruta");
@@ -445,6 +555,13 @@ public class ContabilidadController extends HttpServlet {
 				case "iniciar":
 					this.iniciar(req, resp);
 					break;
+				case "mostrarFormUsuario":
+					this.mostrarFormularioUsuario(req,resp);
+					break;
+					
+				case "createUsuario":
+					this.createUsuario(req,resp);
+					break;
 				case "mostrardashboard":
 					this.mostrarDashboard(req, resp);
 					break;
@@ -454,10 +571,18 @@ public class ContabilidadController extends HttpServlet {
 				case "createCuenta":
 	                this.createCuenta(req, resp);
 	                break;
-	                
+				case "eliminarCuenta":
+	                this.eliminarCuenta(req, resp);
+	                break;
+				case "mostrarFormularioCategoria":
+	                this.mostrarFormularioCategoria(req, resp);
+	                break;    
 				case "createCategoria":
 	                this.crearCategoria(req, resp);
 	                break;
+				case "eliminarCategoria":
+					this.eliminarCategoria(req,resp);
+					break;
 				case "mostrarCuenta":
 					this.mostrarCuenta(req, resp);
 					break;
@@ -486,6 +611,14 @@ public class ContabilidadController extends HttpServlet {
 				case "transferir":
 					this.transferir(req,resp);
 					break;
+				case "actualizarMovimiento":
+					this.actualizarMovimiento(req,resp);
+					break;
+				case "formActualizarMovimiento":
+					this.formActualizarMovimiento(req, resp);
+					break;
+				case "eliminarMovimiento":
+					this.eliminarMovimiento(req,resp);
 					
 				default:
 					

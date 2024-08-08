@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Crear Nueva Categoría</h1>
-    <form action="../ContabilidadController?ruta=createCategoria" method="post">
+    <form action="ContabilidadController?ruta=createCategoria" method="post">
         <input type="hidden" name="ruta" value="crearCategoria">
         <label for="tipoCategoria">Tipo de Categoría:</label>
         <select name="tipoCategoria" id="tipoCategoria" required>

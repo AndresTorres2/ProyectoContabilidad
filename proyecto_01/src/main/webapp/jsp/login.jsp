@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>Login de Cartera Virtual</title>
 </head>
 <body>
 	<form method="POST" action="../ContabilidadController?ruta=ingresar">
@@ -12,12 +12,12 @@
 			<legend>
 				<label>Login</label>
 				<label>Usuario:</label><br>
-				<input type= "text" name = "usuario"/> 
+				<input type= "text"  id="usuario" name = "usuario"/> 
 				
 				<br><br>
 				
 				<label>Password:</label><br>
-				<input type="password" name= "clave"/>
+				<input type="password" id="clave" name= "clave"/>
 				
 				<br><br>
 				
@@ -26,6 +26,12 @@
 		</fieldset>
 	</form>
 
+	<c:if test="${sessionScope.errorMessage != null}">
+        <p style="color: RED;">${sessionScope.errorMessage}</p>
+        <!-- Limpiar el mensaje después de mostrarlo -->
+        <c:remove var="errorMessage"/>
+    </c:if>
+	<a href= "../ContabilidadController?ruta=mostrarFormUsuario" >Crear Nuevo Usuario</a>
 
 </body>
 </html>

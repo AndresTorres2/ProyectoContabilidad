@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Crear Nueva Cuenta</h1>
-    <form action="../ContabilidadController?ruta=createCuenta&idUsuario=${usuario.idUsuario}" method="post">
+    <form action="ContabilidadController?ruta=createCuenta" method="post">
         
         <label for="nombre">Nombre del Propietario:</label>
         <input type="text" id="nombre" name="nombre" value="${usuario.nombre}" readonly><br>

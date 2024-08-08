@@ -49,6 +49,8 @@
                     <td>${movimiento.origen}</td>
                     <td>${movimiento.destino}</td>
                     <td>${movimiento.categoria}</td>
+                    <td> <a href="#" class="eliminarMovimiento" data-idCuenta="${cuenta.idCuenta} " data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
+                    
                 </tr>
             </c:forEach>
         </tbody>
@@ -62,4 +64,29 @@
     <br><br>
     <a href="ContabilidadController?ruta=mostrardashboard" >Regresar</a>
 </body>
+
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".eliminarMovimiento").forEach(function(eliminarLink) {
+        eliminarLink.addEventListener("click", function(event) {
+            event.preventDefault();
+            
+            var idMovimiento = this.getAttribute("data-id");
+            var conceptoMovimiento = this.getAttribute("data-nombre");
+            var idCuenta = this.getAttibute("data-idCuenta");
+            var origen = "verCuenta";
+            
+            var confirmacion = confirm("¿Desea eliminar este movimiento: " + conceptoMovimiento + "?");
+            
+            if (confirmacion) {
+                // Redirige al controlador para eliminar la categoría
+                window.location.href = "ContabilidadController?ruta=eliminarMovimiento&idMovimiento=" + idMovimiento +"&idCuenta="+ idCuenta + "&vistaOrigen=" + encodeURIComponent(origen);
+            }
+        });
+    });
+});
+
+
+</script>
+
 </html>

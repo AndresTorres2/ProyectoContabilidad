@@ -7,7 +7,9 @@ import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import modelo.dto.MovimientoDTO;
 
@@ -42,6 +44,17 @@ public class MovimientoDAO {
         
 		return em.createQuery("SELECT m FROM Movimiento m", Movimiento.class).getResultList();
     }
+	public List<Movimiento> getAllMovementsByUserId(int usuarioId) {
+		String sql = "SELECT m.* FROM Movimiento m " +
+                "LEFT JOIN Cuenta c_origen ON m.origen = c_origen.idCuenta " +
+                "LEFT JOIN Cuenta c_destino ON m.destino = c_destino.idCuenta " +
+                "WHERE c_origen.propietario = ? OR c_destino.propietario = ?";
+   
+	   Query query = em.createNativeQuery(sql, Movimiento.class);
+	   query.setParameter(1, usuarioId);
+	   query.setParameter(2, usuarioId);
+	   return query.getResultList();
+	}
 	
 
 	
@@ -106,7 +119,32 @@ public class MovimientoDAO {
 	        return movimientosDTO;
 	    }
 	
-	
+	public void deleteMovimiento(int idMovimiento) {
+		EntityTransaction transaction = em.getTransaction();
+
+        try {
+            transaction.begin();
+
+            System.out.println("Intentando eliminar la categoría con ID: " + idMovimiento);
+
+            // Buscar la categoría por su ID
+            Movimiento movimiento = em.find(Movimiento.class, idMovimiento);
+            
+            if (movimiento != null) {
+                // Eliminar la categoría
+                em.remove(movimiento);
+            } else {
+                throw new IllegalArgumentException("Categoría con ID " + idMovimiento + " no encontrada.");
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw new RuntimeException("Error al eliminar la categoría", e);
+        }
+	}
 
 
 	/*public List<Movimiento> findMovimientosByCategoria(Categoria categoria) {
