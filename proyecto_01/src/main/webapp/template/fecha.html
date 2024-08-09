@@ -3,10 +3,10 @@
 		<input type="hidden" name="cuentaId" value="${cuenta.idCuenta}">
 		<input type="hidden" name="categoriaId" value="${categoria.idCategoria}">
 	    <label for="fechaInicio">Fecha Inicio:</label>
-	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" />
+	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" max="${currentDate}"  />
 	
 	    <label for="fechaFin">Fecha Fin:</label>
-	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" />
+	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" max="${currentDate}" />
 	
 	    <input type="submit" value="Filtrar" />
 	</form>

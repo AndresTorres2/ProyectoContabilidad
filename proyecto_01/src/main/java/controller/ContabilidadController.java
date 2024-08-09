@@ -119,6 +119,7 @@ public class ContabilidadController extends HttpServlet {
 	        // Guardar fechas en la sesión
 	        session.setAttribute("fechaInicio", fechaInicioStr);
 	        session.setAttribute("fechaFin", fechaFinStr);
+	        session.setAttribute("currentDate", fechaFinStr);
 	    	req.getSession().setAttribute("usuarioId", usuario.getIdUsuario()); 
 	    	session.setMaxInactiveInterval(30 * 60);
 	        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");

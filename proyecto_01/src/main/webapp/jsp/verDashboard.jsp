@@ -31,7 +31,7 @@
                     <td> <a href="ContabilidadController?ruta=registrarEgresoForm&cuentaId=${cuenta.idCuenta}&origen=mostrardashboard" >Registrar un Nuevo Egreso</a></td>
 
    					<td> <a href="ContabilidadController?ruta=registrarTransferenciaForm&cuentaId=${cuenta.idCuenta}&origen=mostrardashboard" >Registrar una Nueva Transferencia</a></td>
-                    <td><a href="#" class="eliminarCuenta" data-id="${cuenta.idCuenta}" data-nombre="${cuenta.nombreCuenta}"> Eliminar</a> </td>
+                    
                 </tr>
             </c:forEach>
         </tbody>
@@ -51,7 +51,7 @@
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria}</a> </td>
                     <td>${totalIngresos[categoria.nombreCategoria]}</td> 
                    
-                    <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
+                    
                 </tr>
             </c:forEach>
         </tbody>
@@ -70,7 +70,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria} </a> </td>
                     <td>${totalEgresos[categoria.nombreCategoria]}</td> 
-                    <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
+                    
                 </tr>
             </c:forEach>
         </tbody>
@@ -89,7 +89,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria}</a> </td>
                     <td>${totalTransferencias[categoria.nombreCategoria]}</td> 
-                    <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
+                    
                 </tr>
             </c:forEach>
         </tbody>

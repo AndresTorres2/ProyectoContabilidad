@@ -16,7 +16,7 @@
         <input type="text" id="nombreCuenta" name="nombreCuenta" required><br>
         
         <label for="saldo">Saldo:</label>
-        <input type="number" id="saldo" name="saldo" step="0.01" required><br>
+        <input type="number" id="saldo" name="saldo" value="0" step="0.01" readonly><br>
         
        
         
