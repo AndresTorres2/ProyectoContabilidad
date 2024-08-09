@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -86,7 +87,7 @@ public class ContabilidadController extends HttpServlet {
 		super.init(config);
 	}
 	
-	public void iniciar(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	public void autenticar(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		/*1.-Obtener los parametros
 		 *2.- Hablar con el modelo
 		 *3.- Llamar a la vista
@@ -97,8 +98,6 @@ public class ContabilidadController extends HttpServlet {
 		
 	    String username = req.getParameter("usuario");
 	    String password = req.getParameter("clave");
-	    
-	
 	    Usuario usuario = usuarioDAO.authenticate(username, password);
 
 	  
@@ -120,9 +119,6 @@ public class ContabilidadController extends HttpServlet {
 	        // Guardar fechas en la sesión
 	        session.setAttribute("fechaInicio", fechaInicioStr);
 	        session.setAttribute("fechaFin", fechaFinStr);
-	        
-	        System.out.println("Fecha de Inicio: " + fechaInicioStr);
-	        System.out.println("Fecha de Fin: " + fechaFinStr);
 	    	req.getSession().setAttribute("usuarioId", usuario.getIdUsuario()); 
 	    	session.setMaxInactiveInterval(30 * 60);
 	        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard");
@@ -151,6 +147,8 @@ public class ContabilidadController extends HttpServlet {
 		
 		int usuarioId =(int) req.getSession().getAttribute("usuarioId");
 		HttpSession session = req.getSession();
+		
+		
 
 	    // Leer fechas desde la solicitud
 	    String fechaInicioStr = req.getParameter("fechaInicio");
@@ -222,7 +220,7 @@ public class ContabilidadController extends HttpServlet {
 	        }
 	    }
 
- 
+	    req.setAttribute("origen", "mostrardashboard");
         req.setAttribute("cuentas", cuentas);
         req.setAttribute("ingresos", ingresos);
         req.setAttribute("egresos", egresos);
@@ -235,7 +233,65 @@ public class ContabilidadController extends HttpServlet {
         req.getRequestDispatcher("jsp/verDashboard.jsp").forward(req, resp);
 		
 	}
+	public void filtrar(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		HttpSession session = req.getSession();
+		
+		
+		String origen = req.getParameter("origen");
 	
+		
+	    // Leer fechas desde la solicitud
+	    String fechaInicioStr = req.getParameter("fechaInicio");
+	    String fechaFinStr = req.getParameter("fechaFin");
+
+	    // Usar formato para fechas
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+	    LocalDateTime fechaInicio;
+	    LocalDateTime fechaFin;
+
+	    if (fechaInicioStr != null && !fechaInicioStr.isEmpty() &&
+	        fechaFinStr != null && !fechaFinStr.isEmpty()) {
+	        // Si se proporcionan nuevas fechas, usarlas
+	        fechaInicio = LocalDateTime.parse(fechaInicioStr, formatter);
+	        fechaFin = LocalDateTime.parse(fechaFinStr, formatter);
+	    } else {
+	        // Si no se proporcionan fechas, usar las fechas almacenadas en la sesión
+	        String fechaInicioSessionStr = (String) session.getAttribute("fechaInicio");
+	        String fechaFinSessionStr = (String) session.getAttribute("fechaFin");
+
+	        if (fechaInicioSessionStr != null && !fechaInicioSessionStr.isEmpty() &&
+	            fechaFinSessionStr != null && !fechaFinSessionStr.isEmpty()) {
+	            // Convertir las fechas de la sesión a LocalDateTime
+	            fechaInicio = LocalDateTime.parse(fechaInicioSessionStr, formatter);
+	            fechaFin = LocalDateTime.parse(fechaFinSessionStr, formatter);
+	        } else {
+	            // Establecer fechas predeterminadas si no hay fechas en la sesión
+	            fechaInicio = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+	            fechaFin = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+	        }
+	    }
+
+	    // Guardar las fechas en la sesión
+	    session.setAttribute("fechaInicio", fechaInicio.format(formatter));
+	    session.setAttribute("fechaFin", fechaFin.format(formatter));
+
+	    
+	    if ("mostrardashboard".equals(origen)) {
+	    	resp.sendRedirect("ContabilidadController?ruta=" + origen);
+	    }else if ("mostrarCuenta".equals(origen)) {
+	    	int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
+	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&cuentaId="+ cuentaId);
+	    	
+	    }else if ("mostrarCategoria".equals(origen)) {
+	    	int categoriaId = Integer.parseInt(req.getParameter("categoriaId"));
+	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&categoriaId="+ categoriaId);
+	    }
+	    
+	    
+	    
+	    
+	}
 	public void mostrarCuenta(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	    // Obtener el identificador de la cuenta desde la solicitud
 		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
@@ -278,6 +334,7 @@ public class ContabilidadController extends HttpServlet {
 	    
 	    
 	    // Establecer atributos en la solicitud
+	    req.setAttribute("origen", "mostrarCuenta");
 	    req.setAttribute("cuenta", cuenta);
 	    req.setAttribute("movimientos", movimientosDTO);
 	    
@@ -340,7 +397,7 @@ public class ContabilidadController extends HttpServlet {
 		        req.setAttribute("movimientos", movimientosDTO);
 		    }
 		    
-		   
+		    req.setAttribute("origen", "mostrarCategoria");
 		    req.setAttribute("categoria", categoria);
 		    req.setAttribute("total", total);
 		    
@@ -351,11 +408,15 @@ public class ContabilidadController extends HttpServlet {
 	public void registrarIngresoForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	
 		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
-		
-		
+		String origen =req.getParameter("origen");
+		if (origen == null || origen.isEmpty()) {
+	        origen = "mostrarCuenta"; // Valor predeterminado
+	    }
 		Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
 		List<Categoria> categoriasIngreso = categoriaIngresoDAO.getCategoriasIngreso();
 		
+		System.out.println("SOY EL ORIGEN FORM " + origen);
+		req.setAttribute("origen", origen);
 		req.setAttribute("cuenta", cuenta);
 		req.setAttribute("categorias", categoriasIngreso);
 		req.getRequestDispatcher("jsp/registrarIngreso.jsp").forward(req, resp);
@@ -366,11 +427,13 @@ public class ContabilidadController extends HttpServlet {
 	public void registrarEgresoForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
 		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
-		
-		
+		 String origen = req.getParameter("origen");
+		 if (origen == null || origen.isEmpty()) {
+		        origen = "mostrarCuenta"; // Valor predeterminado
+		    }
 		Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
 		List<Categoria> categoriasEgreso = categoriaEgresoDAO.getCategoriasEgreso();
-		
+		req.setAttribute("origen", origen);
 		req.setAttribute("cuenta", cuenta);
 		req.setAttribute("categorias", categoriasEgreso);
 		req.getRequestDispatcher("jsp/registrarEgreso.jsp").forward(req, resp);
@@ -386,6 +449,7 @@ public class ContabilidadController extends HttpServlet {
         int categoriaId = Integer.parseInt(req.getParameter("categoria"));
         Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
         Categoria categoria  = categoriaEgresoDAO.getCategoriaById(categoriaId);
+        String origen = req.getParameter("origen");
         
         Timestamp fecha = convertirFecha(fechaStr,resp);
 
@@ -395,9 +459,15 @@ public class ContabilidadController extends HttpServlet {
 	    Egreso nuevoEgreso=  new Egreso(0,concepto,fecha,monto,(CategoriaEgreso) categoria,cuenta);
 	    egresoDAO.createEgreso(nuevoEgreso);
         //actualiza la cuenta
+	    if("mostrardashboard".equals(origen)) {
+	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Egreso Registrado exitosamente");
+	    }else
+	    {
+	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje= Egreso registrado exitosamente");
+	    }
+	   
         
         
-        resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje=Egreso registrado exitosamente");
 		
 	}
 	
@@ -407,7 +477,7 @@ public class ContabilidadController extends HttpServlet {
         double monto = Double.parseDouble(req.getParameter("monto"));
         String fechaStr = req.getParameter("fecha");
         int categoriaId = Integer.parseInt(req.getParameter("categoria"));
-        
+        String origen = req.getParameter("origen");
         Cuenta cuenta = cuentaDAO.getCuentaById(cuentaId);
         
         Categoria categoria = categoriaIngresoDAO.getCategoriaById(categoriaId);
@@ -417,15 +487,25 @@ public class ContabilidadController extends HttpServlet {
 	    Ingreso nuevoIngreso =  new Ingreso(0,concepto,fecha,monto,(CategoriaIngreso) categoria,cuenta);
 	    ingresoDAO.createIngreso(nuevoIngreso);
         
+	 
+	    if( "mostrardashboard".equals(origen)) {
+	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Ingreso Registrado exitosamente");
+	    }else
+	    {
+	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje=Ingreso registrado exitosamente");
+	    }
         
         
-        resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje=Ingreso registrado exitosamente");
 	
 	}
 	
 	public void registrarTransferenciaForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		int cuentaId = Integer.parseInt(req.getParameter("cuentaId"));
 		int usuarioId =(int) req.getSession().getAttribute("usuarioId"); 
+		String origen = req.getParameter("origen");
+		if (origen == null || origen.isEmpty()) {
+	        origen = "mostrarCuenta"; // Valor predeterminado
+	    }
 	    // Obtener la cuenta de origen
 	    Cuenta cuentaOrigen = cuentaDAO.getCuentaById(cuentaId);
 	    
@@ -436,9 +516,12 @@ public class ContabilidadController extends HttpServlet {
 	        .collect(Collectors.toList());
 	    List<Categoria> categorias = categoriaTransferenciaDAO.getCategoriasTransferencia();
 	    
+	    req.setAttribute("origen", origen);
 	    req.setAttribute("cuenta", cuentaOrigen);
 	    req.setAttribute("cuentasDestino", cuentasDestino);
 	    req.setAttribute("categorias", categorias);
+	    
+	    
 	    
 	    req.getRequestDispatcher("jsp/registrarTransferenciaForm.jsp").forward(req, resp);
 	    
@@ -462,7 +545,7 @@ public class ContabilidadController extends HttpServlet {
         
         Cuenta cuentaOrigen = cuentaDAO.getCuentaById(cuentaOrigenId);
         Cuenta  cuentaDestino = cuentaDAO.getCuentaById(cuentaDestinoId);
-        
+        String origen = req.getParameter("origen");
         Categoria categoria  = categoriaTransferenciaDAO.getCategoriaById(categoriaId);
         
         Timestamp fecha = convertirFecha(fechaStr,resp);
@@ -478,8 +561,15 @@ public class ContabilidadController extends HttpServlet {
 	    														//int idMovimiento, String concepto, Date fecha, double valor, CategoriaTransferencia categoriaTransferencia,  Cuenta origenCuenta, Cuenta destinoCuenta
 	    transferenciaDAO.createTransferencia(nuevaTransferencia);
 	    
+	    if("mostrardashboard".equals(origen)) {
+	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Transferencia Registrada exitosamente");
+	    }else
+	    {
+	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaOrigenId + "&mensaje=Transferencia registrada exitosamente");
+	    }
+	    
         
-        resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaOrigenId + "&mensaje=Transferencia registrada exitosamente");
+        
 		
 	}
 	
@@ -601,37 +691,162 @@ public class ContabilidadController extends HttpServlet {
 		
 		int  idMovimiento = Integer.parseInt(req.getParameter("idMovimiento"));
 		Movimiento movimiento = movimientoDAO.findMovimientoById(idMovimiento);
+		Date fecha = movimiento.getFecha();
+		LocalDateTime localDateTime = fecha.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+		String fechaFormateada = localDateTime.format(formatter);
 		 int usuarioId = (int) req.getSession().getAttribute("usuarioId");
 		
 		 List<Categoria> categorias = null;
-		 List<Cuenta> cuentas = cuentaDAO.getAllAccountsByUserId(usuarioId);
+		 List<Cuenta> cuentasDestino = cuentaDAO.getAllAccountsByUserId(usuarioId);
+		 req.setAttribute("cuentasDestino", cuentasDestino);
+		 req.setAttribute("fechaFormateada", fechaFormateada);
 	    // Agregar los datos a la solicitud
 	   
 	    if (movimiento instanceof Transferencia) {
-	    	
 	    	categorias = categoriaTransferenciaDAO.getCategoriasTransferencia();
+	    	Integer destinoId = transferenciaDAO.getDestinoIdByTransferenciaId(idMovimiento);
+	    	Integer origenId = transferenciaDAO.getOrigenIdByTransferenciaId(idMovimiento);
+	    	Integer categoriaId = transferenciaDAO.getCategoriaIdTransferenciaId(idMovimiento);
+
+	    	
+	    	
+	    	req.setAttribute("origenId", origenId);
+	    	req.setAttribute("destinoId", destinoId);
+	    	req.setAttribute("categoriaId", categoriaId);
 	    	req.setAttribute("movimiento", movimiento);
 		    req.setAttribute("categoria", categorias);
-		    req.setAttribute("cuenta", cuentas);
+		  
 	    	req.getRequestDispatcher("jsp/actualizarMovimientoTransferencia.jsp").forward(req, resp);
 	    } else if (movimiento instanceof Ingreso) {
+	    	Integer cuentaId = ingresoDAO.getCuentaIdByIngresoId(idMovimiento);
+	    	Integer categoriaId = ingresoDAO.getCategoriaIdByIngresoId(idMovimiento);
 	    	categorias = categoriaIngresoDAO.getCategoriasIngreso();
+	    	
+	    	
+	    	req.setAttribute("destinoId", cuentaId);
+	    	req.setAttribute("categoriaId", categoriaId);
 	    	req.setAttribute("movimiento", movimiento);
 		    req.setAttribute("categoria", categorias);
-		    req.setAttribute("cuenta", cuentas);
+		   
 	    	req.getRequestDispatcher("jsp/actualizarMovimientoIngreso.jsp").forward(req, resp);
 	    } else if (movimiento instanceof Egreso) {
+	    	Integer cuentaId = egresoDAO.getCuentaIdByEgresoId(idMovimiento);
+	    	Integer categoriaId = egresoDAO.getCategoriaIdByEgresoId(idMovimiento);
+	    	
 	    	categorias = categoriaEgresoDAO.getCategoriasEgreso();
 	    	req.setAttribute("movimiento", movimiento);
 		    req.setAttribute("categoria", categorias);
-		    req.setAttribute("cuenta", cuentas);
+		    req.setAttribute("origenId", cuentaId);
+	    	req.setAttribute("categoriaId", categoriaId);
 	    	req.getRequestDispatcher("jsp/actualizarMovimientoEgreso.jsp").forward(req, resp);
 	    }
 	    ;
 	    
 	}
 	public void actualizarMovimiento(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		
+		try {
+	        // Recoger datos del formulario
+			 int idMovimiento = Integer.parseInt(req.getParameter("idMovimiento"));
+		        String concepto = req.getParameter("concepto");
+		        double monto = Double.parseDouble(req.getParameter("monto"));
+		        String fechaStr = req.getParameter("fecha");
+		        int categoriaId = Integer.parseInt(req.getParameter("categoria"));
+		        
+		        Timestamp fecha = convertirFecha(fechaStr, resp);
+		        // Obtener los objetos necesarios
+		        
+		        //Proceso para eliminar el valor anterior de la cuenta 
+		        Movimiento movimientoAnterior = movimientoDAO.findMovimientoById(idMovimiento);
+		        double montoAnterior = movimientoAnterior.getMonto();
+		       
+	        
+
+	        // Actualizar los detalles del movimiento
+		        movimientoAnterior.setConcepto(concepto);
+		        movimientoAnterior.setMonto(monto);
+		        movimientoAnterior.setFecha(fecha);
+
+	        // Actualizar en función del tipo de movimiento
+	        if (movimientoAnterior instanceof Transferencia) {
+	        	
+	        	
+		        Transferencia transferenciaAnterior = (Transferencia) movimientoAnterior;
+		        int cuentaIdOrigenAnterior = transferenciaAnterior.getOrigen().getIdCuenta();
+		        int cuentaIdDestinoAnterior = transferenciaAnterior.getDestino().getIdCuenta();
+		        cuentaDAO.actualizarSaldo(cuentaIdOrigenAnterior, montoAnterior);
+		        cuentaDAO.actualizarSaldo(cuentaIdDestinoAnterior, -montoAnterior);
+	        	
+	        	
+	            Transferencia transferencia = (Transferencia) movimientoAnterior;
+	            int origenId = Integer.parseInt(req.getParameter("cuentaOrigen")); 
+	            int destinoId = Integer.parseInt(req.getParameter("cuentaDestino")); 
+	            Cuenta origen = cuentaDAO.getCuentaById(origenId);
+	            Cuenta destino = cuentaDAO.getCuentaById(destinoId);
+	            Categoria categoriaTransferencia= categoriaTransferenciaDAO.getCategoriaById(categoriaId);
+	            transferencia.setOrigen(origen);
+	            transferencia.setDestino(destino);
+	            transferencia.setCategoria((CategoriaTransferencia)categoriaTransferencia);
+	            cuentaDAO.actualizarSaldo(origenId, -transferencia.getMonto());
+	            cuentaDAO.actualizarSaldo(destinoId, transferencia.getMonto());
+	            transferenciaDAO.updateTransferencia(transferencia);
+	            
+	            
+	            
+	            
+	           // transferencia.setCuentaOrigen(cuentaDAO.findCuentaById(cuentaOrigenId));
+	            //transferencia.setCuentaDestino(cuentaDAO.findCuentaById(cuentaDestinoId));
+	            //transferencia.setCategoria(categoriaDAO.findCategoriaById(categoriaId));
+	            //transferenciaDAO.updateTransferencia(transferencia);
+	        } else if (movimientoAnterior instanceof Ingreso) {
+	        	
+	        	//Ingreso Anterior
+		        Ingreso ingresoAnterior = (Ingreso) movimientoAnterior;
+		        int cuentaIdAnterior = ingresoAnterior.getDestino().getIdCuenta();
+		        cuentaDAO.actualizarSaldo(cuentaIdAnterior, -montoAnterior);
+	        	
+	        	//Ingreso Actualizado
+	        	
+	        	
+	            Ingreso ingreso = (Ingreso) movimientoAnterior;
+	            int cuentaId = Integer.parseInt(req.getParameter("cuentaDestino")); 
+	            Cuenta destino = cuentaDAO.getCuentaById(cuentaId);
+	            Categoria categoriaIngreso = categoriaIngresoDAO.getCategoriaById(categoriaId);
+	            ingreso.setDestino(destino);
+	            ingreso.setCategoria((CategoriaIngreso)categoriaIngreso);
+	            cuentaDAO.actualizarSaldo(cuentaId, ingreso.getMonto());
+	            ingresoDAO.updateIngreso(ingreso);
+	            
+	        } else if (movimientoAnterior instanceof Egreso) {
+
+		        Egreso egresoAnterior = (Egreso) movimientoAnterior;
+		        int cuentaIdAnterior = egresoAnterior.getOrigen().getIdCuenta();
+		        cuentaDAO.actualizarSaldo(cuentaIdAnterior, -montoAnterior);
+	        	
+	        	
+	        	
+	        	//Egreso Modificado
+	            Egreso egreso = (Egreso) movimientoAnterior;
+	            int cuentaId = Integer.parseInt(req.getParameter("cuentaOrigen")); 
+	            Cuenta origen = cuentaDAO.getCuentaById(cuentaId);
+	            Categoria categoriaEgreso = categoriaEgresoDAO.getCategoriaById(categoriaId);
+	            egreso.setMonto(-monto);
+	            egreso.setOrigen(origen);
+	            egreso.setCategoria((CategoriaEgreso)categoriaEgreso);
+	            cuentaDAO.actualizarSaldo(cuentaId, egreso.getMonto());
+	            egresoDAO.updateEgreso(egreso);
+	            //egreso.setCuentaOrigen(cuentaDAO.findCuentaById(cuentaOrigenId));
+	            //egreso.setCategoria(categoriaDAO.findCategoriaById(categoriaId));
+	            //egresoDAO.updateEgreso(egreso);
+	        }
+
+	        // Redirigir a la página de éxito o mostrar un mensaje de éxito
+	        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard&mensaje=Movimiento Modificado exitosamente");
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        req.setAttribute("error", "Error al actualizar el movimiento: " + e.getMessage());
+	        req.getRequestDispatcher("jsp/error.jsp").forward(req, resp);
+	    }
 	}
 
 	private void ruteador(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -640,8 +855,8 @@ public class ContabilidadController extends HttpServlet {
 				case "ingresar": 
 					this.ingresar(req, resp);
 					break;
-				case "iniciar":
-					this.iniciar(req, resp);
+				case "autenticar":
+					this.autenticar(req, resp);
 					break;
 				case "mostrarFormUsuario":
 					this.mostrarFormularioUsuario(req,resp);
@@ -695,7 +910,7 @@ public class ContabilidadController extends HttpServlet {
 				case "registrarTransferenciaForm":
 					this.registrarTransferenciaForm(req,resp);
 					break;
-					
+
 				case "transferir":
 					this.transferir(req,resp);
 					break;
@@ -707,6 +922,10 @@ public class ContabilidadController extends HttpServlet {
 					break;
 				case "eliminarMovimiento":
 					this.eliminarMovimiento(req,resp);
+					break;
+				case "filtrar":
+					this.filtrar(req, resp);
+					break;
 					
 				default:
 					

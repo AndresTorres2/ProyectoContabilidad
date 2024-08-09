@@ -74,4 +74,41 @@ public class TransferenciaDAO  extends MovimientoDAO {
             throw new RuntimeException("Error al crear la Transferencia", e);
         }
     }
+
+	public Integer getDestinoIdByTransferenciaId(int idMovimiento) {
+		String query = "SELECT m.destino.idCuenta FROM Transferencia m WHERE m.idMovimiento = :idTransferencia";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idTransferencia", idMovimiento);
+         
+        return typedQuery.getSingleResult();
+	}
+
+	public Integer getCategoriaIdTransferenciaId(int idMovimiento) {
+		String query = "SELECT m.categoria.idCategoria FROM Transferencia m WHERE m.idMovimiento = :idMovimiento";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idMovimiento", idMovimiento);
+         
+        return typedQuery.getSingleResult();
+	}
+
+	public Integer getOrigenIdByTransferenciaId(int idMovimiento) {
+		String query = "SELECT m.origen.idCuenta FROM Transferencia m WHERE m.idMovimiento = :idTransferencia";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idTransferencia", idMovimiento);
+         
+        return typedQuery.getSingleResult();
+	}
+
+	public void updateTransferencia(Transferencia transferencia) {
+		EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            em.merge(transferencia); // Inserta el nuevo ingreso en la base de datos
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            throw new RuntimeException("Error al actualizar la transferencia", e);
+        }
+		
+	}
 }

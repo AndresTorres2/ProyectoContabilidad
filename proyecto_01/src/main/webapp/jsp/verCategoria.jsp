@@ -10,13 +10,7 @@
     <h1>Detalles de la Categoría</h1>
     
    
-	    <label for="fechaInicio">Fecha Inicio:</label>
-	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" />
-	
-	    <label for="fechaFin">Fecha Fin:</label>
-	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" />
-	
-    
+	 <%@include file="../template/fecha.html" %>
     <h2>Nombre de la Categoría</h2>
     <p>${categoria.nombreCategoria}</p>
     
@@ -43,6 +37,8 @@
                     <td>${movimiento.origen}</td>
                     <td>${movimiento.destino}</td>
                     <td> <a href="#" class="eliminarMovimiento" data-idCategoria="${categoria.idCategoria}"data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
+                	<td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar(En Construcción)</a> </td>
+                	
                 </tr>
             </c:forEach>
         </tbody>

@@ -8,9 +8,12 @@
 </head>
 <body>
     <h1>Nuevo Ingreso</h1>
+    
     <form action="ContabilidadController?ruta=registrarIngreso&cuentaId=${cuenta.idCuenta}" method="post">
+    	<input type="hidden" name="origen" value="${origen}"> 
         <label for="concepto">Concepto:</label>
         <input type="text" id="concepto" name="concepto" required><br>
+        
         
         <label for="monto">Monto:</label>
         <input type="number" id="monto" name="monto" step="0.01" required><br>
@@ -35,7 +38,7 @@
         
         <br>
         <br>
-        <a href="ContabilidadController?ruta=mostrarCuenta&cuentaId=${cuenta.idCuenta}" >Cancelar</a>
+        <a href="ContabilidadController?ruta=${origen}&cuentaId=${cuenta.idCuenta}" >Cancelar</a>
     </form>
 </body>
 </html>

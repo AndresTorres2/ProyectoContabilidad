@@ -4,10 +4,10 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Actualizar Movimiento Ingreso</title>
+    <title>Actualizar Movimiento Egreso</title>
 </head>
 <body>
-    <h1>Actualizar Movimiento Ingreso</h1>
+    <h1>Actualizar Movimiento Egreso</h1>
     <form action="ContabilidadController?ruta=actualizarMovimiento" method="post">
         <input type="hidden" name="idMovimiento" value="${movimiento.idMovimiento}">
         
@@ -15,16 +15,16 @@
         <input type="text" id="concepto" name="concepto" value="${movimiento.concepto}" required><br>
         
         <label for="monto">Monto:</label>
-        <input type="number" id="monto" name="monto" value="${movimiento.monto}" step="0.01" required><br>
+        <input type="number" id="monto" name="monto" value="${-movimiento.monto}" step="0.01" required><br>
         
         <label for="fecha">Fecha y Hora:</label>
         <input type="datetime-local" id="fecha" name="fecha" value="${fechaFormateada}" required><br>
 
         <!-- Para Ingreso, solo se muestra la cuenta de destino -->
-        <label for="cuentaDestino">Cuenta de Destino:</label>
-		<select id="cuentaDestino" name="cuentaDestino" required>
+        <label for="cuentaOrigen">Cuenta de Origen:</label>
+		<select id="cuentaOrigen" name="cuentaOrigen" required>
 		    <c:forEach var="cuenta" items="${cuentasDestino}">
-		        <option value="${cuenta.idCuenta}" ${cuenta.idCuenta == destinoId ? 'selected' : ''}>
+		        <option value="${cuenta.idCuenta}" ${cuenta.idCuenta == origenId ? 'selected' : ''}>
 		            ${cuenta.nombreCuenta}
 		        </option>
 		    </c:forEach>

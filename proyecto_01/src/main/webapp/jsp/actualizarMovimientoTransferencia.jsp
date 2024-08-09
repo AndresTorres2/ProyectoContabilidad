@@ -4,10 +4,10 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Actualizar Movimiento Ingreso</title>
+    <title>Actualizar Movimiento Transferencia</title>
 </head>
 <body>
-    <h1>Actualizar Movimiento Ingreso</h1>
+    <h1>Actualizar Movimiento Transferencia</h1>
     <form action="ContabilidadController?ruta=actualizarMovimiento" method="post">
         <input type="hidden" name="idMovimiento" value="${movimiento.idMovimiento}">
         
@@ -19,6 +19,16 @@
         
         <label for="fecha">Fecha y Hora:</label>
         <input type="datetime-local" id="fecha" name="fecha" value="${fechaFormateada}" required><br>
+
+		<label for="cuentaOrigen">Cuenta de Origen:</label>
+		<select id="cuentaOrigen" name="cuentaOrigen" required>
+		    <c:forEach var="cuenta" items="${cuentasDestino}">
+		        <option value="${cuenta.idCuenta}" ${cuenta.idCuenta == origenId ? 'selected' : ''}>
+		            ${cuenta.nombreCuenta}
+		        </option>
+		    </c:forEach>
+		</select><br>
+
 
         <!-- Para Ingreso, solo se muestra la cuenta de destino -->
         <label for="cuentaDestino">Cuenta de Destino:</label>
@@ -45,5 +55,6 @@
 
         
     </form>
+    
 </body>
 </html>

@@ -9,6 +9,7 @@
 <body>
     <h1>Nueva Transferencia</h1>
     <form action="ContabilidadController?ruta=transferir&cuentaOrigenId=${cuenta.idCuenta}" method="post">
+    <input type="hidden" name="origen" value="${origen}"> 
         <label for="concepto">Concepto:</label>
         <input type="text" id="concepto" name="concepto" required><br>
         
@@ -42,7 +43,7 @@
         
         <br>
         <br>
-        <a href="ContabilidadController?ruta=mostrarCuenta&cuentaId=${cuenta.idCuenta}" >Cancelar</a>
+        <a href="ContabilidadController?ruta=${origen}&cuentaId=${cuenta.idCuenta}" >Cancelar</a>
     </form>
 </body>
 </html>

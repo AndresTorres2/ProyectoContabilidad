@@ -86,4 +86,32 @@ public class IngresoDAO extends MovimientoDAO {
 		return em.createQuery("SELECT m FROM Ingreso m", Ingreso.class).getResultList();
     }*/
 	
+	public Integer getCuentaIdByIngresoId(int idIngreso) {
+		String query = "SELECT m.destino.idCuenta FROM Ingreso m WHERE m.idMovimiento = :idIngreso";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idIngreso", idIngreso);
+         
+        return typedQuery.getSingleResult();
+    }
+
+	public Integer getCategoriaIdByIngresoId(int idMovimiento) {
+		String query = "SELECT m.categoria.idCategoria FROM Ingreso m WHERE m.idMovimiento = :idMovimiento";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idMovimiento", idMovimiento);
+         
+        return typedQuery.getSingleResult();
+	}
+
+	public void updateIngreso(Ingreso ingreso) {
+		EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            em.merge(ingreso); // Inserta el nuevo ingreso en la base de datos
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            throw new RuntimeException("Error al actualizar el ingreso", e);
+        }
+		
+	}
 }

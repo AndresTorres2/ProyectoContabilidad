@@ -75,5 +75,31 @@ public class EgresoDAO extends MovimientoDAO {
             throw new RuntimeException("Error al crear el egreso", e);
         }
     }
+	public Integer getCuentaIdByEgresoId(int idMovimiento) {
+		String query = "SELECT m.origen.idCuenta FROM Egreso m WHERE m.idMovimiento = :idEgreso";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idEgreso", idMovimiento);
+         
+        return typedQuery.getSingleResult();
+	}
+	public Integer getCategoriaIdByEgresoId(int idMovimiento) {
+		String query = "SELECT m.categoria.idCategoria FROM Egreso m WHERE m.idMovimiento = :idMovimiento";
+        TypedQuery<Integer> typedQuery = em.createQuery(query, Integer.class);
+        typedQuery.setParameter("idMovimiento", idMovimiento);
+         
+        return typedQuery.getSingleResult();
+	}
+	public void updateEgreso(Egreso egreso) {
+		EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            em.merge(egreso); // Inserta el nuevo ingreso en la base de datos
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            throw new RuntimeException("Error al actualizar el egreso", e);
+        }
+		
+	}
 	
 }

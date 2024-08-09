@@ -8,17 +8,12 @@
 </head>
 <body>
 	<h1>Estado de la Contabilidad</h1>
+	<c:if test="${param.mensaje != null}">
+        <p style="color: green;">${param.mensaje}</p>
+    </c:if>
 	
-	<form action="ContabilidadController?ruta=mostrardashboard" method="post">
-	    <label for="fechaInicio">Fecha Inicio:</label>
-	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" />
 	
-	    <label for="fechaFin">Fecha Fin:</label>
-	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" />
-	
-	    <input type="submit" value="Filtrar" />
-	</form>
-	
+	<%@include file="../template/fecha.html" %>
     <h2>Consolidado de las Cuentas</h2>
      <table border="1">
         <thead>
@@ -32,6 +27,10 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCuenta&cuentaId=${cuenta.idCuenta}">${cuenta.nombreCuenta}</a> </td>
                     <td>${cuenta.total}</td>
+                    <td> <a href="ContabilidadController?ruta=registrarIngresoForm&cuentaId=${cuenta.idCuenta}&origen=mostrardashboard" >Registrar un Nuevo Ingreso</a></td>
+                    <td> <a href="ContabilidadController?ruta=registrarEgresoForm&cuentaId=${cuenta.idCuenta}&origen=mostrardashboard" >Registrar un Nuevo Egreso</a></td>
+
+   					<td> <a href="ContabilidadController?ruta=registrarTransferenciaForm&cuentaId=${cuenta.idCuenta}&origen=mostrardashboard" >Registrar una Nueva Transferencia</a></td>
                     <td><a href="#" class="eliminarCuenta" data-id="${cuenta.idCuenta}" data-nombre="${cuenta.nombreCuenta}"> Eliminar</a> </td>
                 </tr>
             </c:forEach>
@@ -51,6 +50,7 @@
                 <tr>
                     <td> <a href="ContabilidadController?ruta=mostrarCategoria&categoriaId=${categoria.idCategoria}" >${categoria.nombreCategoria}</a> </td>
                     <td>${totalIngresos[categoria.nombreCategoria]}</td> 
+                   
                     <td><a href="#" class="eliminarCategoria" data-id="${categoria.idCategoria}" data-nombre="${categoria.nombreCategoria}"> Eliminar</a> </td>
                 </tr>
             </c:forEach>

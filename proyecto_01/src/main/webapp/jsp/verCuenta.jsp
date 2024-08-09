@@ -10,13 +10,7 @@
     <h1>Detalles de la Cuenta</h1>
     
    
-	    <label for="fechaInicio">Fecha Inicio:</label>
-	    <input type="datetime-local" id="fechaInicio" name="fechaInicio" value="${fechaInicio}" />
-	
-	    <label for="fechaFin">Fecha Fin:</label>
-	    <input type="datetime-local" id="fechaFin" name="fechaFin" value="${fechaFin}" />
-	
-
+	  <%@include file="../template/fecha.html" %>
     
      <!-- Mostrar mensaje de éxito si está presente -->
     <c:if test="${param.mensaje != null}">
@@ -56,11 +50,11 @@
                     <td>${movimiento.concepto}</td>
                     <td>${movimiento.fecha}</td>
                     <td>${movimiento.monto}</td>
-                    <td>${movimiento.origen}</td>
+                    <td>${movimiento.origen}</td> 
                     <td>${movimiento.destino}</td>
                     <td>${movimiento.categoria}</td>
+                    <td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar(En Construcción)</a> </td>
                     <td> <a href="#" class="eliminarMovimiento" data-idCuenta="${cuenta.idCuenta}" data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
-                    
                 </tr>
             </c:forEach>
         </tbody>
