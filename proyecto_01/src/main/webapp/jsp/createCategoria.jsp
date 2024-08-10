@@ -13,7 +13,7 @@
         <select name="tipoCategoria" id="tipoCategoria" required>
             <option value="egreso">Egreso</option>
             <option value="ingreso">Ingreso</option>
-            <option value="transferencia">Transferencia</option>
+            
         </select>
         <br><br>
         <label for="nombreCategoria">Nombre de la Categoría:</label>

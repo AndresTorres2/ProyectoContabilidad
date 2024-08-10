@@ -133,14 +133,22 @@ public class ContabilidadController extends HttpServlet {
 		
 	}
 	public void mostrarFormularioUsuario(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
 		resp.sendRedirect("jsp/createUsuario.jsp");
 	}
 	public void createUsuario(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String nombre =  req.getParameter("nombre");
 		String clave =  req.getParameter("clave");
 		Usuario usuario  =  new Usuario(0,nombre,clave);
+		CategoriaTransferencia existente = categoriaTransferenciaDAO.getCategoriaTransferenciaByName("Transferencia entre Cuentas");
+		if (existente == null) {
+	        // La categoría no existe, así que la guardamos
+			Categoria categoria = new CategoriaTransferencia(0,"Transferencia entre Cuentas");
+			categoriaTransferenciaDAO.saveCategoriaTransferencia((CategoriaTransferencia) categoria);
+	    }
+		
 		usuarioDAO.create(usuario);
-		resp.sendRedirect("ContabilidadController?ruta=iniciar");
+		resp.sendRedirect("ContabilidadController?ruta=autenticar");
 	}
 	
 	
@@ -653,10 +661,7 @@ public class ContabilidadController extends HttpServlet {
 	    } else if ("ingreso".equalsIgnoreCase(tipoCategoria)) {
 	        categoria = new CategoriaIngreso(0,nombreCategoria);
 	        categoriaDAO = new CategoriaIngresoDAO();
-	    } else if ("transferencia".equalsIgnoreCase(tipoCategoria)) {
-	        categoria = new CategoriaTransferencia(0,nombreCategoria);
-	        categoriaDAO = new CategoriaTransferenciaDAO();
-	    }
+	    } 
 
 	    if (categoria != null && categoriaDAO != null) {
 	        categoriaDAO.saveCategoria(categoria);
@@ -891,7 +896,7 @@ public class ContabilidadController extends HttpServlet {
 	}
 
 	private void ruteador(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		String ruta = (req.getParameter("ruta") == null)? "iniciar": req.getParameter("ruta");
+		String ruta = (req.getParameter("ruta") == null)? "autenticar": req.getParameter("ruta");
 		switch (ruta) {
 				case "ingresar": 
 					this.ingresar(req, resp);

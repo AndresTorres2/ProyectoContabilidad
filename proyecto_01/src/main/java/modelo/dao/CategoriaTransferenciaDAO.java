@@ -141,7 +141,17 @@ public class CategoriaTransferenciaDAO extends CategoriaDAO {
 	    }
 	}
 
-
+//ESTO SOLO ES PARA CUMPLIR REGLA DE NEGOCIO DE TRANSFERIR
+	public CategoriaTransferencia getCategoriaTransferenciaByName(String nombre) {
+        try {
+            return em.createQuery("SELECT c FROM CategoriaTransferencia c WHERE c.nombreCategoria = :nombre", CategoriaTransferencia.class)
+                     .setParameter("nombre", nombre)
+                     .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+	
 
 
 	
