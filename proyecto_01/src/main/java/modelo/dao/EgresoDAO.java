@@ -37,10 +37,11 @@ public class EgresoDAO extends MovimientoDAO {
 	    List<Movimiento> movimiento = query.getResultList();
 	    return movimiento;
 	}
-	/*public List<Egreso> getAllMovements() {
+	//Lo necesito para el service web por que me da pereza mandar 3 parametros xd
+	public List<Egreso> getAllMovementsEgreso() {
         
 		return em.createQuery("SELECT m FROM Egreso m", Egreso.class).getResultList();
-    }*/
+    }
 	
 	public List<Movimiento> getMovimientosByCuenta(Cuenta cuenta, Timestamp fechaInicio, Timestamp fechaFin) {
 	    try {

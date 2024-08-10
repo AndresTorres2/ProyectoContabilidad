@@ -36,10 +36,10 @@ public class TransferenciaDAO  extends MovimientoDAO {
 	    List<Movimiento> movimiento = query.getResultList();
 	    return movimiento;
 	}
-	/*public List<Transferencia> getAllMovements() {
+	public List<Transferencia> getAllMovementsTransferencia() {
         
 		return em.createQuery("SELECT m FROM Transferencia m", Transferencia.class).getResultList();
-    }*/
+    }
 	
 	public List<Movimiento> getMovimientosByCuenta(Cuenta cuenta, Timestamp fechaInicio, Timestamp fechaFin) {
 	    try {

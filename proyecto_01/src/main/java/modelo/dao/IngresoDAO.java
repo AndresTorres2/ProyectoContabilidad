@@ -80,11 +80,11 @@ public class IngresoDAO extends MovimientoDAO {
             throw new RuntimeException("Error al crear el ingreso", e);
         }
     }
-	
-	/*public List<Ingreso> getAllMovements() {
+	//Lo necesito para el service web por que me da pereza mandar 3 parametros xd
+	public List<Ingreso> getAllMovementsIngreso() {
         
 		return em.createQuery("SELECT m FROM Ingreso m", Ingreso.class).getResultList();
-    }*/
+    }
 	
 	public Integer getCuentaIdByIngresoId(int idIngreso) {
 		String query = "SELECT m.destino.idCuenta FROM Ingreso m WHERE m.idMovimiento = :idIngreso";
