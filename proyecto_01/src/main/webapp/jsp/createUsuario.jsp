@@ -25,7 +25,7 @@
 			</legend>
 		</fieldset>
 	</form>
-
+<a href="javascript:history.back()">Cancelar</a>
 
 </body>
 </html>

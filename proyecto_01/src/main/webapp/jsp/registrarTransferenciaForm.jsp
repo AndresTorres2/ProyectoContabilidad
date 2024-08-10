@@ -14,7 +14,7 @@
         <input type="text" id="concepto" name="concepto" required><br>
         
         <label for="monto">Monto:</label>
-        <input type="number" id="monto" name="monto" step="0.01" required><br>
+        <input type="number" id="monto" name="monto" step="0.01" min="0" required oninput="validateMonto(this)"><br>
         
         <label for="fecha">Fecha y Hora:</label>
 		<input type="datetime-local" id="fecha" name="fecha" required><br>
@@ -45,5 +45,27 @@
         <br>
         <a href="ContabilidadController?ruta=${origen}&cuentaId=${cuenta.idCuenta}" >Cancelar</a>
     </form>
+    
+    
+    
+    
+     <script>
+		function validateMonto(input) {
+		    // Eliminar cualquier carácter que no sea dígito o punto decimal
+		    input.value = input.value.replace(/[^0-9.]/g, '');
+		
+		    // Eliminar el punto decimal si hay más de uno
+		    let parts = input.value.split('.');
+		    if (parts.length > 2) {
+		        input.value = parts[0] + '.' + parts.slice(1).join('');
+		    }
+		
+		    // Asegurarse de que el valor no sea negativo
+		    if (parseFloat(input.value) < 0) {
+		        input.value = '0';
+		    }
+		}
+	</script>
+    
 </body>
 </html>

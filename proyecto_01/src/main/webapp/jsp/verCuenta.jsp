@@ -53,7 +53,7 @@
                     <td>${movimiento.origen}</td> 
                     <td>${movimiento.destino}</td>
                     <td>${movimiento.categoria}</td>
-                    <td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar(En Construcción)</a> </td>
+                    <td> <a href="ContabilidadController?ruta=formActualizarMovimiento&idMovimiento=${movimiento.idMovimiento}" >Editar</a> </td>
                     <td> <a href="#" class="eliminarMovimiento" data-idCuenta="${cuenta.idCuenta}" data-id="${movimiento.idMovimiento}" data-nombre="${movimiento.concepto}" >Eliminar</a> </td>
                 </tr>
             </c:forEach>

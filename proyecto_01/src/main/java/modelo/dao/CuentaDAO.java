@@ -43,7 +43,7 @@ public class CuentaDAO  {
     }
 	
 	
-	public void actualizarSaldo(int cuentaId, double monto) {
+	public void actualizarSaldo(int cuentaId, double monto) throws Exception {
 		EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
@@ -56,7 +56,7 @@ public class CuentaDAO  {
             	if (nuevoSaldo < 0) {
                     // Si el saldo es negativo, cancela la transacción y lanza una excepción
                     transaction.rollback();
-                    throw new RuntimeException("El valor ingresado supera el saldo total de la cuenta.");
+                    throw new Exception("El valor ingresado supera el saldo total de la cuenta.");
                 }
             	
                 cuenta.setTotal(nuevoSaldo);
@@ -65,8 +65,10 @@ public class CuentaDAO  {
             
             transaction.commit();
         } catch (Exception e) {
-            transaction.rollback();
-            throw new RuntimeException("Error al actualizar el saldo de la cuenta", e);
+        	 if (transaction.isActive()) {
+                 transaction.rollback();
+             }
+             throw e;
         }
     }
 	

@@ -52,9 +52,9 @@
         <input type="submit" value="Actualizar Movimiento">
         
         <br><br>
-
+		
         
     </form>
-    
+    <a href="javascript:history.back()">Cancelar</a>
 </body>
 </html>

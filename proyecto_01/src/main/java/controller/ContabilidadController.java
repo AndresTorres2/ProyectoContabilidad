@@ -455,17 +455,22 @@ public class ContabilidadController extends HttpServlet {
         Timestamp fecha = convertirFecha(fechaStr,resp);
 
 	    monto = -monto;
-	    cuentaDAO.actualizarSaldo(cuentaId, monto);
-	    //movimiento
-	    Egreso nuevoEgreso=  new Egreso(0,concepto,fecha,monto,(CategoriaEgreso) categoria,cuenta);
-	    egresoDAO.createEgreso(nuevoEgreso);
-        //actualiza la cuenta
-	    if("mostrardashboard".equals(origen)) {
-	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Egreso Registrado exitosamente");
-	    }else
-	    {
-	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje= Egreso registrado exitosamente");
+	    try{
+	    	cuentaDAO.actualizarSaldo(cuentaId, monto);
+		    //movimiento
+		    Egreso nuevoEgreso=  new Egreso(0,concepto,fecha,monto,(CategoriaEgreso) categoria,cuenta);
+		    egresoDAO.createEgreso(nuevoEgreso);
+	        //actualiza la cuenta
+		    if("mostrardashboard".equals(origen)) {
+		    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Egreso Registrado exitosamente");
+		    }else{
+		    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje= Egreso registrado exitosamente");
+		    }
+	    }catch(Exception e) {
+	    	req.setAttribute("errorMessage", "Error al registrar el egreso: " + e.getMessage());
+	    	req.getRequestDispatcher("jsp/error.jsp").forward(req, resp);
 	    }
+	    
 	   
         
         
@@ -484,17 +489,27 @@ public class ContabilidadController extends HttpServlet {
         Categoria categoria = categoriaIngresoDAO.getCategoriaById(categoriaId);
 
         Timestamp fecha = convertirFecha(fechaStr,resp);
-	    cuentaDAO.actualizarSaldo(cuentaId, monto);
-	    Ingreso nuevoIngreso =  new Ingreso(0,concepto,fecha,monto,(CategoriaIngreso) categoria,cuenta);
-	    ingresoDAO.createIngreso(nuevoIngreso);
         
-	 
-	    if( "mostrardashboard".equals(origen)) {
-	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Ingreso Registrado exitosamente");
-	    }else
-	    {
-	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje=Ingreso registrado exitosamente");
-	    }
+        
+        try {
+        	cuentaDAO.actualizarSaldo(cuentaId, monto);
+    	    Ingreso nuevoIngreso =  new Ingreso(0,concepto,fecha,monto,(CategoriaIngreso) categoria,cuenta);
+    	    ingresoDAO.createIngreso(nuevoIngreso);
+            
+    	 
+    	    if( "mostrardashboard".equals(origen)) {
+    	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Ingreso Registrado exitosamente");
+    	    }else
+    	    {
+    	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaId + "&mensaje=Ingreso registrado exitosamente");
+    	    }
+        	
+        	
+        }catch(Exception e) {
+        	req.setAttribute("errorMessage", "Error al registrar la transferencia: " + e.getMessage());
+            req.getRequestDispatcher("jsp/error.jsp").forward(req, resp);
+ 	   }
+	    
         
         
 	
@@ -551,23 +566,31 @@ public class ContabilidadController extends HttpServlet {
         
         Timestamp fecha = convertirFecha(fechaStr,resp);
 
-	 
+        try {
+        	
+        	cuentaDAO.actualizarSaldo(cuentaOrigenId, -monto);
+    	    cuentaDAO.actualizarSaldo(cuentaDestinoId, monto);
+            
+            
+    	    
+    	    Transferencia nuevaTransferencia=  new Transferencia(0,concepto,fecha,monto,(CategoriaTransferencia) categoria,cuentaOrigen,cuentaDestino);
+    	    														//int idMovimiento, String concepto, Date fecha, double valor, CategoriaTransferencia categoriaTransferencia,  Cuenta origenCuenta, Cuenta destinoCuenta
+    	    transferenciaDAO.createTransferencia(nuevaTransferencia);
+    	    
+    	    if("mostrardashboard".equals(origen)) {
+    	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Transferencia Registrada exitosamente");
+    	    }else
+    	    {
+    	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaOrigenId + "&mensaje=Transferencia registrada exitosamente");
+    	    }
+        	
+        	
+        }catch(Exception e) {
+        	 req.setAttribute("errorMessage", "Error al registrar la transferencia: " + e.getMessage());
+             req.getRequestDispatcher("jsp/error.jsp").forward(req, resp);
+ 	   }
 
-	    cuentaDAO.actualizarSaldo(cuentaOrigenId, -monto);
-	    cuentaDAO.actualizarSaldo(cuentaDestinoId, monto);
-        
-        
 	    
-	    Transferencia nuevaTransferencia=  new Transferencia(0,concepto,fecha,monto,(CategoriaTransferencia) categoria,cuentaOrigen,cuentaDestino);
-	    														//int idMovimiento, String concepto, Date fecha, double valor, CategoriaTransferencia categoriaTransferencia,  Cuenta origenCuenta, Cuenta destinoCuenta
-	    transferenciaDAO.createTransferencia(nuevaTransferencia);
-	    
-	    if("mostrardashboard".equals(origen)) {
-	    	resp.sendRedirect("ContabilidadController?ruta=" + origen + "&mensaje=Transferencia Registrada exitosamente");
-	    }else
-	    {
-	    	resp.sendRedirect("ContabilidadController?ruta=mostrarCuenta&cuentaId=" + cuentaOrigenId + "&mensaje=Transferencia registrada exitosamente");
-	    }
 	    
         
         
@@ -656,37 +679,45 @@ public class ContabilidadController extends HttpServlet {
 		
 		Movimiento movimiento =  movimientoDAO.findMovimientoById(idMovimiento);
 		
-		
-		
-		movimientoDAO.deleteMovimiento(idMovimiento);
-		if (movimiento instanceof Egreso) {
-			 Egreso egreso = (Egreso) movimiento;
-	        // Para un Egreso, el monto debe ser restado
-	        cuentaDAO.actualizarSaldo(egreso.getOrigen().getIdCuenta(),-egreso.getMonto());
-	    } else if (movimiento instanceof Ingreso) {
-	    	Ingreso ingreso = (Ingreso) movimiento;
-	        // Para un Ingreso, el monto debe ser sumado
-	    	cuentaDAO.actualizarSaldo(ingreso.getDestino().getIdCuenta(),-ingreso.getMonto());
-	    } else if (movimiento instanceof Transferencia) {
-	        Transferencia transferencia = (Transferencia) movimiento;
-	        // Para una Transferencia, ajustar dos cuentas
-	        cuentaDAO.actualizarSaldo(transferencia.getOrigen().getIdCuenta(), transferencia.getMonto());
-	        cuentaDAO.actualizarSaldo(transferencia.getDestino().getIdCuenta(),-transferencia.getMonto());
-	    }
-		
-		
-		
-		
-		 String redireccionURL = "ContabilidadController?ruta=mostrardashboard"; // Valor por defecto
-
-		    if ("mostrarCuenta".equals(vistaOrigen)) {
-		        redireccionURL = "ContabilidadController?ruta=mostrarCuenta&cuentaId=" + Integer.parseInt(req.getParameter("idCuenta"));
-		    } else if ("mostrarCategoria".equals(vistaOrigen)) {
-		    	System.out.println(req.getParameter("idCategoria"));
-		        redireccionURL = "ContabilidadController?ruta=mostrarCategoria&categoriaId=" + Integer.parseInt(req.getParameter("idCategoria"));
+		try {
+			
+			movimientoDAO.deleteMovimiento(idMovimiento);
+			if (movimiento instanceof Egreso) {
+				 Egreso egreso = (Egreso) movimiento;
+		        // Para un Egreso, el monto debe ser restado
+		        cuentaDAO.actualizarSaldo(egreso.getOrigen().getIdCuenta(),-egreso.getMonto());
+		    } else if (movimiento instanceof Ingreso) {
+		    	Ingreso ingreso = (Ingreso) movimiento;
+		        // Para un Ingreso, el monto debe ser sumado
+		    	cuentaDAO.actualizarSaldo(ingreso.getDestino().getIdCuenta(),-ingreso.getMonto());
+		    } else if (movimiento instanceof Transferencia) {
+		        Transferencia transferencia = (Transferencia) movimiento;
+		        // Para una Transferencia, ajustar dos cuentas
+		        cuentaDAO.actualizarSaldo(transferencia.getOrigen().getIdCuenta(), transferencia.getMonto());
+		        cuentaDAO.actualizarSaldo(transferencia.getDestino().getIdCuenta(),-transferencia.getMonto());
 		    }
-		    
-		    resp.sendRedirect(redireccionURL);
+			
+			
+			
+			
+			 String redireccionURL = "ContabilidadController?ruta=mostrardashboard"; // Valor por defecto
+
+			    if ("mostrarCuenta".equals(vistaOrigen)) {
+			        redireccionURL = "ContabilidadController?ruta=mostrarCuenta&cuentaId=" + Integer.parseInt(req.getParameter("idCuenta"));
+			    } else if ("mostrarCategoria".equals(vistaOrigen)) {
+			    	System.out.println(req.getParameter("idCategoria"));
+			        redireccionURL = "ContabilidadController?ruta=mostrarCategoria&categoriaId=" + Integer.parseInt(req.getParameter("idCategoria"));
+			    }
+			    
+			    resp.sendRedirect(redireccionURL);
+			
+			
+		}catch(Exception e) {
+			req.setAttribute("errorMessage", "Error al registrar la transferencia: " + e.getMessage());
+            req.getRequestDispatcher("jsp/error.jsp").forward(req, resp);
+		   }
+		
+		
 	}
 	public void formActualizarMovimiento(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -844,10 +875,19 @@ public class ContabilidadController extends HttpServlet {
 	        // Redirigir a la página de éxito o mostrar un mensaje de éxito
 	        resp.sendRedirect("ContabilidadController?ruta=mostrardashboard&mensaje=Movimiento Modificado exitosamente");
 	    } catch (Exception e) {
-	        e.printStackTrace();
-	        req.setAttribute("error", "Error al actualizar el movimiento: " + e.getMessage());
+	        
+	        req.setAttribute("errorMessage", "Error al actualizar el movimiento: " + e.getMessage());
 	        req.getRequestDispatcher("jsp/error.jsp").forward(req, resp);
 	    }
+	}
+	public void cerrarSesion(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        // Redirigir al usuario a la página de inicio o de confirmación
+        resp.sendRedirect("jsp/login.jsp"); 
 	}
 
 	private void ruteador(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -926,6 +966,9 @@ public class ContabilidadController extends HttpServlet {
 					break;
 				case "filtrar":
 					this.filtrar(req, resp);
+					break;
+				case "cerrarSesion":
+					this.cerrarSesion(req,resp);
 					break;
 					
 				default:
