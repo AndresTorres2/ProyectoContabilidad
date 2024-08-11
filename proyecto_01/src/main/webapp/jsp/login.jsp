@@ -1,37 +1,36 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Login de Cartera Virtual</title>
+    <meta charset="UTF-8">
+    <title>Login de Cartera Virtual</title>
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/log.css">
 </head>
 <body>
-	<form method="POST" action="../ContabilidadController?ruta=ingresar">
-		<fieldset>
-			<legend>
-				<label>Login</label>
-				<label>Usuario:</label><br>
-				<input type= "text"  id="usuario" name = "usuario"/> 
-				
-				<br><br>
-				
-				<label>Password:</label><br>
-				<input type="password" id="clave" name= "clave"/>
-				
-				<br><br>
-				
-				<input type="submit" value="Ingresar"/>
-			</legend>
-		</fieldset>
-	</form>
+    <div class="form-container">
+        <h1>Login</h1>
+        <form method="POST" action="../ContabilidadController?ruta=ingresar">
+            <label for="usuario">Usuario:</label>
+            <input type="text" id="usuario" name="usuario" required>
 
-	<c:if test="${sessionScope.errorMessage != null}">
-        <p style="color: RED;">${sessionScope.errorMessage}</p>
-        <!-- Limpiar el mensaje después de mostrarlo -->
-        <c:remove var="errorMessage"/>
-    </c:if>
-	<a href= "../ContabilidadController?ruta=mostrarFormUsuario" >Crear Nuevo Usuario</a>
+            <label for="clave">Password:</label>
+            <input type="password" id="clave" name="clave" required>
 
+            <input type="submit" value="Ingresar">
+        </form>
+
+        <div class="message-container">
+            <c:if test="${sessionScope.errorMessage != null}">
+                <p>${sessionScope.errorMessage}</p>
+                <!-- Limpiar el mensaje después de mostrarlo -->
+                <c:remove var="errorMessage"/>
+            </c:if>
+        </div>
+
+        <div class="actions-container">
+            <a href="../ContabilidadController?ruta=mostrarFormUsuario">Crear Nuevo Usuario</a>
+        </div>
+    </div>
 </body>
 </html>
