@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Error</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Puedes agregar tu CSS aquí -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/erro.css">
 </head>
 <body>
     <div class="container">
